@@ -12,8 +12,8 @@
     --panel: #ffffff;
     --panel2: #f5f7fc;
     --border: #d4d9eb;
-    --gold: #8a6a1f;
-    --gold-light: #6b4f10;
+    --gold: #3f5f92;
+    --gold-light: #223b63;
     --text: #1a1f36;
     --muted: #6b7394;
     --ucl: #500778;
@@ -110,6 +110,19 @@
     flex-shrink: 0;
     background: #fff;
   }
+  .sidebar-scroll {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .sidebar-scroll::-webkit-scrollbar { width: 6px; }
+  .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: #c8cde0;
+    border-radius: 6px;
+    border: 2px solid #ffffff;
+  }
+  .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: #aeb7d2; }
   .sidebar-title {
     font-family: 'Playfair Display', serif;
     font-size: 0.95rem;
@@ -128,13 +141,10 @@
   }
 
   .dev-list {
-    overflow-y: auto;
-    flex: 1;
+    overflow: visible;
+    flex: none;
     padding: 8px 0;
   }
-  .dev-list::-webkit-scrollbar { width: 4px; }
-  .dev-list::-webkit-scrollbar-track { background: transparent; }
-  .dev-list::-webkit-scrollbar-thumb { background: #c8cde0; border-radius: 4px; }
 
   /* Filter Panels — light + collapsible */
   .filter-panel {
@@ -199,10 +209,10 @@
     transition: all 0.15s;
     user-select: none;
   }
-  .filter-chip:hover { border-color: var(--gold); background: #fffbf0; }
+  .filter-chip:hover { border-color: var(--gold); background: #f3f6fb; }
   .filter-chip.active {
     border-color: var(--gold);
-    background: rgba(138,106,31,0.08);
+    background: rgba(63,95,146,0.09);
   }
   .filter-chip.active .filter-dot { background: var(--gold); }
   .filter-dot {
@@ -226,7 +236,7 @@
     min-width: 22px;
     text-align: center;
   }
-  .filter-chip.active .filter-chip-count { color: var(--gold); background: rgba(138,106,31,0.12); }
+  .filter-chip.active .filter-chip-count { color: var(--gold); background: rgba(63,95,146,0.12); }
   .filter-reset {
     margin-top: 7px;
     font-size: 0.7rem;
@@ -271,8 +281,8 @@
     align-items: center;
   }
   .time-pill {
-    background: rgba(138,106,31,0.10);
-    border: 1px solid rgba(138,106,31,0.25);
+    background: rgba(63,95,146,0.09);
+    border: 1px solid rgba(63,95,146,0.24);
     color: var(--gold);
     padding: 1px 7px;
     border-radius: 10px;
@@ -280,9 +290,72 @@
     font-weight: 500;
   }
   .price-tag {
-    color: #2e7d32;
+    color: #3f5f92;
     font-weight: 500;
   }
+
+  .dev-item-price-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  .bed-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 5px;
+  }
+  .bed-mini-chip {
+    border: 1px solid #d4d9eb;
+    background: #fff;
+    color: #4b5474;
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 0.64rem;
+    line-height: 1.45;
+  }
+  .bed-mini-chip.available {
+    border-color: rgba(63,95,146,0.30);
+    color: #3f5f92;
+    background: rgba(63,95,146,0.06);
+  }
+  .price-matrix {
+    display: grid;
+    gap: 5px;
+    margin: 8px 0 4px;
+  }
+  .price-row {
+    display: grid;
+    grid-template-columns: 78px 1fr;
+    gap: 8px;
+    align-items: center;
+    font-size: 0.74rem;
+    padding: 5px 7px;
+    border: 1px solid #d4d9eb;
+    border-radius: 6px;
+    background: #f8f9fd;
+  }
+  .price-row-label {
+    color: #1a1f36;
+    font-weight: 600;
+  }
+  .price-row-value {
+    color: #3f5f92;
+    font-weight: 500;
+    text-align: right;
+  }
+  .price-row-value.sold {
+    color: #7a82a0;
+  }
+  .iw-note {
+    font-size: 0.68rem;
+    color: #6b7394;
+    line-height: 1.45;
+    margin-top: 4px;
+  }
+
 
   /* Map */
   #map {
@@ -396,22 +469,59 @@
     border: 1px solid #d4d9eb !important;
     border-radius: 10px !important;
     padding: 0 !important;
-    max-width: 280px !important;
+    max-width: 320px !important;
     box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
   }
-  .gm-style .gm-style-iw-d { overflow: hidden !important; }
+  .gm-style .gm-style-iw-chr {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    z-index: 2 !important;
+    height: 28px !important;
+    min-height: 28px !important;
+  }
+  .gm-style .gm-style-iw-ch { padding: 0 !important; }
+  .gm-style .gm-style-iw-d {
+    overflow-y: auto !important;
+    max-height: min(72vh, 560px) !important;
+  }
   .gm-style .gm-style-iw-tc::after { background: #ffffff !important; }
-  .gm-style button.gm-ui-hover-effect { top: 4px !important; right: 4px !important; }
+  .gm-style button.gm-ui-hover-effect {
+    top: 8px !important;
+    right: 8px !important;
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 999px !important;
+    background: rgba(248,249,253,0.94) !important;
+    border: 1px solid rgba(212,217,235,0.95) !important;
+    box-shadow: 0 2px 8px rgba(26,31,54,0.10) !important;
+    opacity: 1 !important;
+  }
+  .gm-style button.gm-ui-hover-effect:hover {
+    background: #ffffff !important;
+    border-color: rgba(63,95,146,0.35) !important;
+  }
+  .gm-style button.gm-ui-hover-effect span {
+    width: 14px !important;
+    height: 14px !important;
+    margin: 5px !important;
+    background-color: #6b7394 !important;
+  }
+  .gm-style button.gm-ui-hover-effect:hover span {
+    background-color: #223b63 !important;
+  }
 
   .iw-content {
-    padding: 14px 16px;
+    padding: 12px 14px 14px;
     font-family: 'DM Sans', sans-serif;
     color: #1a1f36;
+    max-height: min(72vh, 560px);
+    overflow-y: auto;
   }
   .iw-name {
     font-family: 'Playfair Display', serif;
     font-size: 0.95rem;
-    color: #6b4f10;
+    color: #223b63;
     margin-bottom: 6px;
     line-height: 1.3;
   }
@@ -428,16 +538,16 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    margin: 8px 0;
-    padding: 8px;
-    background: rgba(138,106,31,0.06);
-    border: 1px solid rgba(138,106,31,0.18);
+    margin: 6px 0;
+    padding: 7px 8px;
+    background: rgba(63,95,146,0.06);
+    border: 1px solid rgba(63,95,146,0.18);
     border-radius: 6px;
   }
   .iw-time-num {
-    font-size: 1.6rem;
+    font-size: 1.45rem;
     font-family: 'Playfair Display', serif;
-    color: #8a6a1f;
+    color: #3f5f92;
     line-height: 1;
   }
   .iw-time-label { font-size: 0.72rem; color: #6b7394; line-height: 1.4; }
@@ -446,7 +556,7 @@
     letter-spacing: 0.1em;
     color: #6b7394;
     text-transform: uppercase;
-    margin: 10px 0 5px;
+    margin: 8px 0 4px;
     font-weight: 600;
   }
   .transport-steps {
@@ -457,7 +567,7 @@
     background: #f5f7fc;
     border: 1px solid #d4d9eb;
     border-radius: 8px;
-    padding: 8px 10px;
+    padding: 7px 9px;
   }
   .transport-step {
     display: flex;
@@ -474,7 +584,7 @@
   .t-icon { font-size: 0.85rem; }
   .t-label { font-size: 0.7rem; }
   .transport-arrow { color: #6b7394; font-size: 0.7rem; padding: 0 1px; }
-  .iw-divider { height: 1px; background: #d4d9eb; margin: 8px 0; }
+  .iw-divider { height: 1px; background: #d4d9eb; margin: 7px 0; }
 </style>
 </head>
 <body>
@@ -501,6 +611,7 @@
       <span class="sidebar-title" id="sidebar-title">UCL Bloomsbury</span>
       <span class="count-badge" id="count-badge">32 developments</span>
     </div>
+    <div class="sidebar-scroll">
     <div class="filter-panel" id="price-filter-panel">
       <div class="filter-panel-header" onclick="toggleFilterPanel('price-filter-panel')">
         <div class="filter-label">💷 Filter by Price</div>
@@ -509,6 +620,16 @@
       <div class="filter-panel-body">
         <div class="filter-grid" id="filter-grid"></div>
         <div class="filter-reset" id="filter-reset" onclick="clearPriceFilters()" style="display:none">✕ Clear</div>
+      </div>
+    </div>
+    <div class="filter-panel" id="bed-filter-panel">
+      <div class="filter-panel-header" onclick="toggleFilterPanel('bed-filter-panel')">
+        <div class="filter-label">🛏 Filter by Bedroom</div>
+        <span class="filter-toggle-icon">▼</span>
+      </div>
+      <div class="filter-panel-body">
+        <div class="filter-grid" id="bed-grid"></div>
+        <div class="filter-reset" id="bed-reset" onclick="clearBedFilters()" style="display:none">✕ Clear</div>
       </div>
     </div>
     <div class="filter-panel" id="status-filter-panel">
@@ -522,6 +643,7 @@
       </div>
     </div>
     <div class="dev-list" id="dev-list"></div>
+    </div>
   </div>
   <div id="map">
     <div id="map-placeholder" style="display:none"></div>
@@ -653,6 +775,2038 @@ const COORD_DB = {
   'Keybridge':{'lat':51.4862,'lng':-0.1234},
   'The Edit':{'lat':51.5052,'lng':-0.1010},
   'The Founding':{'lat':51.4988,'lng':-0.0502},
+};
+
+const PRICE_LOOKUP = {
+  "UCL": {
+    "Fitzroy Walk": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£1,025,000-£1,200,000",
+        "two": "",
+        "three": "£3,100,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Fitzroy Walk - 2026 Price List.pdf"
+    },
+    "101 on Cleveland": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "W1 Place (The Great Portland)": {
+      "prices": {
+        "studio": "",
+        "one": "£2,385,000",
+        "two": "£1,765,000-£2,550,000",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 reservation fee.",
+      "payment": "10% deposit paid on exchange in 28 days, less reservation fee; balance of 90% paid upon completion.",
+      "source": "W1 Place Pricelist JUNE 2026.pdf"
+    },
+    "19 Bolsover Street": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "",
+        "three": "£4,595,000",
+        "fourPlus": "",
+        "penthouse": "售罄"
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "19 Bolsover Street Price List.pdf"
+    },
+    "The Bolsover": {
+      "prices": {
+        "studio": "£975,000",
+        "one": "£1,250,000-£1,640,000",
+        "two": "£1,800,000-£2,500,000",
+        "three": "£3,100,000",
+        "fourPlus": "£3,900,000",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 reservation fee.",
+      "payment": "10% deposit on exchange; 90% payable on completion.",
+      "source": "The Bolsover Price List 22 April 26.pdf"
+    },
+    "Centre Point Residences": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "£3,200,000-£3,500,000",
+        "three": "£7,500,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Centre Point - Centre Point Residences.pdf"
+    },
+    "Chiltern Place": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "",
+      "payment": "",
+      "source": ""
+    },
+    "West End Gate": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£865,000",
+        "two": "售罄",
+        "three": "售罄",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "£1,000,000及以下 £5,000",
+      "payment": "28天内交换并支付10%（扣除预定金）；交房付90%",
+      "source": "The Residences Price List 29.06.26.pdf"
+    },
+    "Trillium": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£1,016,000-£1,320,500",
+        "two": "£1,350,000-£1,897,000",
+        "three": "£2,005,000-£2,636,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "£1,000,000及以下 £5,000；£1,000,000以上 £10,000；£2,000,000以上 £15,000",
+      "payment": "21天内交换并支付10%（扣除预定金）；交换后12个月付10%；交换后24个月付10%；交房付70%",
+      "source": "Trillium Price List 28.06.26.pdf"
+    },
+    "Chapter House": {
+      "prices": {
+        "studio": "£895,000",
+        "one": "£895,000",
+        "two": "售罄",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": "售罄"
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Chapter House Price List.pdf"
+    },
+    "Marylebone Mansions": {
+      "prices": {
+        "studio": "",
+        "one": "£949,500-£1,200,000",
+        "two": "£1,350,000-£2,400,000",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": "£2,400,000"
+      },
+      "reservation": "£5,000 for apartments up to £2,500,000; £10,000 for units above £2,500,000",
+      "payment": "10% of purchase price payable on exchange within 21 days, less reservation fee",
+      "source": "Marylebone Mansions - 2026 Price List.pdf"
+    },
+    "Marylebone Square": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "£4,950,000-£5,250,000",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 reservation fee",
+      "payment": "10% deposit paid on exchange within 28 days less reservation fee; 90% balance paid upon completion",
+      "source": "Marylebone Square Pricelist_MAY 26.pdf"
+    },
+    "One Bishopsgate Plaza": {
+      "prices": {
+        "studio": "",
+        "one": "£995,000-£1,445,000",
+        "two": "£1,800,000-£2,345,000",
+        "three": "£3,762,000-£4,180,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "Reservation Fee - £5,000 / £10,000 non-refundable fee payable (copy of passport/driving licence and utility bill no older than 3 months to be provided at this point) : Est",
+      "payment": "10% of purchase price (less reservation deposit paid) is payable within 21 days of reservation 3; 90% of the purchase price is payable upon completion ONE BISHOPSGATE PLAZA ADDRESS: One Bishopsgate Plaza, 80 Houndsditch, London EC3A 7AB https://onebgp",
+      "source": "One Bishopsgate Plaza Savills Price List May 2026.pdf"
+    },
+    "100 George Street": {
+      "prices": {
+        "studio": "",
+        "one": "£1,850,000-£2,050,000",
+        "two": "£2,950,000-£3,375,000",
+        "three": "售罄",
+        "fourPlus": "£15,500,000",
+        "penthouse": ""
+      },
+      "reservation": "£10,000.",
+      "payment": "15 working days to exchange of contracts with deposit of 10% less the reservation fee; balance due upon completion.",
+      "source": "100GS - Availability List MAY 2025.pdf"
+    },
+    "Southbank Place": {
+      "prices": {
+        "studio": "",
+        "one": "£1,900,000-£2,000,000",
+        "two": "£2,600,000-£5,200,000",
+        "three": "£4,700,000-£6,200,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 reservation fee payable at reservation.",
+      "payment": "10% of purchase price payable on exchange of contracts; 90% payable upon completion.",
+      "source": "Seven Southbank Place -Pricelist New May 2026.pdf"
+    },
+    "Paddington Gardens": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "The OWO": {
+      "prices": {
+        "studio": "",
+        "one": "From £4M",
+        "two": "From £8M",
+        "three": "From £11.3M",
+        "fourPlus": "From £17.95M",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "The OWO Residences - THE OWO RESIDENCES PRICE GUIDE.pdf"
+    },
+    "Park Modern": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "One Carrington": {
+      "prices": {
+        "studio": "",
+        "one": "£2,950,000-£3,250,000",
+        "two": "£5,500,000-£6,500,000",
+        "three": "£6,500,000-£12,500,000",
+        "fourPlus": "£12,950,000",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "One Carrington - Customer Price List - November 2024 Release.pdf"
+    },
+    "One Crown Place": {
+      "prices": {
+        "studio": "",
+        "one": "£985,000-£1,170,000",
+        "two": "£1,460,200-£1,710,000",
+        "three": "£3,225,000-£7,500,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "One Crown Place Price List March 2026.pdf"
+    },
+    "Postmark": {
+      "prices": {
+        "studio": "",
+        "one": "£950,000-£1,015,000",
+        "two": "£1,315,000-£1,470,000",
+        "three": "售罄",
+        "fourPlus": "£1,875,000",
+        "penthouse": ""
+      },
+      "reservation": "£2,000; £5,000 if over £1,000,000.",
+      "payment": "10% of purchase price less reservation fee payable upon exchange of contracts; remaining 90% due upon legal completion.",
+      "source": "20.06.26 - Monograph Square - Price List Block H.pdf"
+    },
+    "Battersea Power Station": {
+      "prices": {
+        "studio": "£770,000-£885,000",
+        "one": "£1,425,000",
+        "two": "",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5000 reservation fee, 10% deposit for exchange (less £5000 res fee) remaining 90% to be paid upon completion Page 1 of 2; reservation fee, 10% deposit for exchange (less £5000 res fee) remaining 90% to be paid upon completion Page 1 of 2",
+      "payment": "10% deposit for exchange (less £5000 res fee) remaining 90% to be paid upon completion Page 1 of 2; Payment Terms: £5000 reservation fee, 10% deposit for exchange (less £5000 res fee) remaining 90% to be paid upon completion Page 1 of 2",
+      "source": "Battersea Power Station Pricelist Jan 2026.pdf; KOA Pricelist Jan 2026.pdf; NEW KOA Pricelist 11 May 2026.pdf; P2 Pricelist May 2026.pdf"
+    },
+    "DAMAC Tower": {
+      "prices": {
+        "studio": "£698,000",
+        "one": "£838,000-£1,003,000",
+        "two": "£1,158,000-£1,197,000",
+        "three": "£2,738,000",
+        "fourPlus": "£10,664,000-£11,313,000",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "10% immediate deposit; 90% on completion.",
+      "source": "DAMAC TOWER NINE ELMS LONDON_Availability(1).pdf"
+    },
+    "The Whiteley": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "£5,350,000-£6,500,000",
+        "three": "£6,500,000-£13,500,000",
+        "fourPlus": "£9,750,000-£24,000,000",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Whiteley Pricelist 09.09.25 Agents.pdf"
+    },
+    "Principal Tower": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "售罄",
+        "three": "£7,280,000",
+        "fourPlus": "",
+        "penthouse": "£7,280,000"
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "The Penthouse Collection_Principal_Tower JUNE 2026.pdf"
+    },
+    "The Bryanston": {
+      "prices": {
+        "studio": "",
+        "one": "£2,700,000-£3,050,000",
+        "two": "£4,950,000-£7,200,000",
+        "three": "£9,100,000-£21,250,000",
+        "fourPlus": "",
+        "penthouse": "POA"
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "The Bryanston Hyde Park - Sample Price List - May 2026.pdf"
+    },
+    "White City Living": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£745,000-£787,500",
+        "two": "£1,000,000-£1,550,000",
+        "three": "£1,720,000-£2,945,000",
+        "fourPlus": "售罄",
+        "penthouse": "£4,000,000"
+      },
+      "reservation": "£500,000-£1,500,000：£5,000；£1,500,000-£3,000,000：£10,000；£3,000,000以上：£15,000",
+      "payment": "Cascades：交换10%，12个月内再付10%，交房80%；Solaris：交换10%，交房90%",
+      "source": "WCL - Cascades Three price list - 27.06.26.pdf；WCL - Ready to move - Solaris One 27.06.26.pdf；WCL - Solaris Two 27.06.26.pdf"
+    },
+    "Television Center": {
+      "prices": {
+        "studio": "£595,000-£650,000",
+        "one": "£795,000-£880,000",
+        "two": "£995,000-£1,450,000",
+        "three": "£1,575,000-£2,200,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 up to £2,000,000; £10,000 over £2,000,000",
+      "payment": "Exchange of contracts: 10% of purchase price less reservation deposit within 28 days of receipt of draft contracts; balance 90% payable upon completion",
+      "source": "TVC The Ariel Price List 04.06.2026.pdf; TVC Scenery House Price List 04.06.26.pdf"
+    },
+    "Angel Village": {
+      "prices": {
+        "studio": "",
+        "one": "£584,000-£740,500",
+        "two": "£903,000-£951,500",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£2,500 reservation fee, 10% deposit on exchange of contracts, 90% payable on completion; reservation fee, 10% deposit on exchange of contracts, 90% payable on completion",
+      "payment": "86% Q1 2027 2 Bedroom Apartments Unit Building Bedrooms Floor Area (sqm) Area (sqft) Asking Price Rental Yield Completion 2; 72% Q3 2027 3 Bedroom Apartments Unit Building Bedrooms Floor Area (sqm) Area (sqft) Asking Price Rental Yield Completion 22; 86% Q4 2026 2 Bedroom Apartments Unit Building Bedrooms Floor Area (sqm) Area (sqft) Asking Price Rental Yield Completion 2; 72% Q3 2027 3 Bedroom Apartments Unit Building Bedrooms Floor Area (sqm) Area (sqft) Asking Price Rental Yield Completion 22",
+      "source": "Angel Village Price List June 2026.pdf; Angel Village Price List May 2026(1).pdf; Angel Village Price List – (April 2026).pdf"
+    },
+    "The Arc": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "250 City Road": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "Camden Goods Yard": {
+      "prices": {
+        "studio": "£587,000-£608,000",
+        "one": "£746,000-£853,000",
+        "two": "£1,177,000-£1,424,000",
+        "three": "£1,399,000-£1,616,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "£999,999及以下 £5,000；£1,000,000及以上 £10,000",
+      "payment": "28天内交换合同；交换时10%；交换后6个月付5%；交房付85%",
+      "source": "Camden Goods Yard - The Gallery - Pricelist - 28.06.26.pdf；Camden Goods Yard - The Regent  - Pricelist 28.06.26.pdf"
+    },
+    "Graphite Square": {
+      "prices": {
+        "studio": "",
+        "one": "£575,000-£800,000",
+        "two": "£825,000-£2,550,000",
+        "three": "£2,435,000-£2,600,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "Reservation Fee - £2,500 Sub Penthouses and Penthouses Loading…BackTranscriptClose side sheet/* Copyright The Closure Library Authors",
+      "payment": "10% Deposit on Exchange of Contracts & 90% due upon completion Reservation Fee - £2,500 Sub Penthouses and Penthouses Loading…BackTranscriptClose side sheet/* Copyright The Closure Library Authors",
+      "source": "Graphite Square Price List - April 2026.pdf"
+    },
+    "Oval Village": {
+      "prices": {
+        "studio": "£599,500",
+        "one": "£680,000-£750,000",
+        "two": "£905,000-£1,225,000",
+        "three": "£1,450,000-£2,050,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "£1,000,000及以下 £5,000；£1,000,000以上 £10,000；£2,000,000以上 £15,000",
+      "payment": "The Pinnacle Core 1/2：28天内交换，交换时10%，交房90%；The Halo Core 1/2：21天内交换，交换时10%，12个月10%，交房80%；Core 3：21天内交换，交换时10%，12个月10%，24个月5%，交房75%",
+      "source": "Oval Village - The Pinnacle Pricelist  - 28.06.2026.pdf；Oval Village The Halo - The Residences - Price list - 28.06.2026.pdf；Oval Village The Halo - Penthouse - Price list - 28.06.2026.pdf"
+    },
+    "Opus": {
+      "prices": {
+        "studio": "£775,000-£875,000",
+        "one": "£1,150,000-£1,535,000",
+        "two": "£1,320,000-£3,850,000",
+        "three": "£2,950,000-£5,150,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 deposit required at reservation",
+      "payment": "20 working days to exchange contracts; 10% deposit less reservation fee; 90% due upon completion",
+      "source": "Opus - Availability List May 2026.pdf"
+    },
+    "The Auria": {
+      "prices": {
+        "studio": "",
+        "one": "£720,000-£780,000",
+        "two": "£1,050,000-£1,680,000",
+        "three": "£1,800,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000",
+      "payment": "10% on exchange; 90% on completion",
+      "source": "The Auria Price List - 03 June 2026.pdf"
+    },
+    "Ebury": {
+      "prices": {
+        "studio": "",
+        "one": "£825,000-£1,037,500",
+        "two": "£1,225,000-£1,450,000",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "10% on Exchange and 90% on Completion Please note: This price list was correct at the time of publishing but is subject to change at a short notice without warning IMPORTANT NOTICE Savills, their clients and any joint agents give notice that: 1",
+      "source": "Ebury Price List 27.03.26.pdf"
+    },
+    "Chelsea Barracks": {
+      "prices": {
+        "studio": "",
+        "one": "£3.3M",
+        "two": "From £5.55M",
+        "three": "From £8.7M",
+        "fourPlus": "£20M",
+        "penthouse": "£41M"
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Chelsea Barracks - CHELSEA BARRACKS - ONE FIVE FIELDS SQUARE PRICE LIST.pdf"
+    },
+    "The Broadway": {
+      "prices": {
+        "studio": "",
+        "one": "£1,350,000-£2,375,000",
+        "two": "£2,475,000-£3,750,000",
+        "three": "£3,900,000-£8,950,000",
+        "fourPlus": "£7,950,000-£8,150,000",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "The Broadway SW1 Price List 090626.pdf"
+    },
+    "London Dock": {
+      "prices": {
+        "studio": "£711,000-£733,000",
+        "one": "£675,000-£826,000",
+        "two": "£985,000-£1,360,000",
+        "three": "£1,979,000-£2,296,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "£1,000,000及以下 £5,000；£1,000,000以上 £10,000",
+      "payment": "21天内交换合同并支付10%（扣除预定金）；交换后12个月付10%；交换后18个月付5%；余款交房支付",
+      "source": "London Dock G1 - Tranquillity Place - 28.06.26.pdf；London Dock G2 - Kingfisher Court - 28.06.26.pdf；London Dock G3 - Imperial Tower - 28.06.26.pdf；London Dock G4 - Chime Gardens 28.06.26.pdf；Saffron Private Price list June 28.06.26.pdf"
+    },
+    "Embassy Gardens": {
+      "prices": {
+        "studio": "£770,000-£795,000",
+        "one": "£865,000-£1,002,500",
+        "two": "£1,515,000-£2,255,000",
+        "three": "£2,115,000-£4,062,500",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 fee payable on reservation; £10,000 for apartments over £2M.",
+      "payment": "Deposit one: 10% of agreed purchase price less reservation fee payable upon exchange of contracts; deposit two: 5% payable 12 months after exchange; remaining 85% payable upon completion.",
+      "source": "The Capston Price List - 2nd June 2026.pdf"
+    },
+    "Woodberry Down": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£515,000-£610,000",
+        "two": "£785,000-£1,097,500",
+        "three": "£892,500-£1,795,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "The Crown：二/三居 £5,000；其他价单未显示统一金额",
+      "payment": "The Crown：28天内交换，交换时10%（扣除预定金），交房90%；其他价单付款条件未显示",
+      "source": "The Grove Collection - The Alba Pricelist 22.06.2026.pdf；The Grove Collection - The Iris Pricelist 22.06.2026.pdf；WD The Crown Collection Penthouse Price List 22.06.2026.pdf；Woodberry Down - Editions Price List 22.06.2026.pdf"
+    },
+    "Fulton & Fifth": {
+      "prices": {
+        "studio": "£417,500-£480,000",
+        "one": "£455,000-£580,000",
+        "two": "£585,000-£735,000",
+        "three": "£827,500-£832,500",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Fulton & Fifth - Brookline Price List - 20.05.26.pdf; Fulton & Fifth - Elmhurst Price List - 14 .04.26.pdf; Fulton & Fifth (Parkside) Investor Price List 14.04.26.pdf"
+    },
+    "The Pages": {
+      "prices": {
+        "studio": "",
+        "one": "£385,000-£455,000",
+        "two": "£475,000-£665,000",
+        "three": "£722,500-£760,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£2,500 reservation deposit payable immediately.",
+      "payment": "10% on exchange within 28 days of reservation; 90% due on completion.",
+      "source": "THE PAGES PRICE LIST - May 2026.pdf; THE PAGES 3-BED PRICE LIST - May 2026.pdf"
+    }
+  },
+  "UCLE": {
+    "TwelveTrees Park": {
+      "prices": {
+        "studio": "£499,950-£527,500",
+        "one": "£572,500-£682,500",
+        "two": "£719,000-£785,000",
+        "three": "£799,950-£1,015,000",
+        "fourPlus": "售罄",
+        "penthouse": "£1,275,000-£1,415,000"
+      },
+      "reservation": "Suite/一居 £2,500；二/三居 £5,000；Penthouse £10,000",
+      "payment": "28天内交换合同；交换时10%（扣除预定金）；交换后6个月付10%；余款交房支付",
+      "source": "Penthouse Collection Price List 21.06.2026.pdf；Skyline Residence Price List 21.06.2026.pdf；The Redwood Price List 21.6.26.pdf"
+    },
+    "Bow Green": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£555,000-£565,000",
+        "two": "£610,000-£680,000",
+        "three": "£760,000-£1,200,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "£5,000",
+      "payment": "交换合同时支付15%；交房支付85%",
+      "source": "Bow Green - ready to move in Core B Pricelist.pdf；Bow Green - ready to move in Core C Pricelist.pdf"
+    },
+    "Heron Wharf": {
+      "prices": {
+        "studio": "",
+        "one": "£455,000-£517,500",
+        "two": "£555,000-£790,000",
+        "three": "£810,000-£875,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "Under £500,000: £2,500; £500,000-£1.5 million: £5,000; £1.5 million-£3 million: £10,000.",
+      "payment": "10% deposit due upon exchange of contracts within 21 days of reservation; 90% due upon legal completion.",
+      "source": "Heron Wharf - Price List Snapshot 08.06.2026.pdf; Heron Wharf - The Millhouse Snapshot Price List 08.06.2026.pdf"
+    },
+    "One Bishopsgate Plaza": {
+      "prices": {
+        "studio": "",
+        "one": "£995,000-£1,445,000",
+        "two": "£1,800,000-£2,345,000",
+        "three": "£3,762,000-£4,180,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "Reservation Fee - £5,000 / £10,000 non-refundable fee payable (copy of passport/driving licence and utility bill no older than 3 months to be provided at this point) : Est",
+      "payment": "10% of purchase price (less reservation deposit paid) is payable within 21 days of reservation 3; 90% of the purchase price is payable upon completion ONE BISHOPSGATE PLAZA ADDRESS: One Bishopsgate Plaza, 80 Houndsditch, London EC3A 7AB https://onebgp",
+      "source": "One Bishopsgate Plaza Savills Price List May 2026.pdf"
+    },
+    "Riverscape": {
+      "prices": {
+        "studio": "",
+        "one": "£479,500-£552,500",
+        "two": "£595,500-£670,000",
+        "three": "£742,500-£930,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£2,000 non-refundable deposit payable upon reservation.",
+      "payment": "10% of purchase price less reservation deposit payable within 35 days of reservation upon exchange; 90% payable upon completion.",
+      "source": "Riverscape Price List - Summer Fete 2026.pdf"
+    },
+    "One Park Drive": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": "£4,100,000-£4,700,000"
+      },
+      "reservation": "£10,000 reservation fee payable.",
+      "payment": "Exchange within 21 days of reservation; 10% deposit payable on exchange; balance payable on completion.",
+      "source": "The Penthouses at One Park Drive 30.03.2026.pdf"
+    },
+    "Aspen at Consort Place": {
+      "prices": {
+        "studio": "£539,500-£572,500",
+        "one": "£640,000-£755,000",
+        "two": "£855,000-£1,250,000",
+        "three": "£1,199,500-£1,585,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£2,000 reservation deposit.",
+      "payment": "Exchange within 28 days of reservation; 10% deposit less reservation fee due on exchange; full balance due on completion.",
+      "source": "Aspen pricelist - 05-05-2026.pdf"
+    },
+    "10 Park Drive": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "£1,275,000-£1,340,000",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 reservation fee.",
+      "payment": "Exchange of contracts within 28 days of reservation; 10% deposit payable on exchange; balance payable on completion.",
+      "source": "10 Park Drive Price List 30.03.2026.pdf"
+    },
+    "South Quay Plaza": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£699,950-£917,500",
+        "two": "£970,000-£1,327,500",
+        "three": "£1,760,000-£1,805,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "一居/景观一居 £2,500；二/三居 £5,000；Penthouse £10,000",
+      "payment": "28天内交换合同；交换时10%（扣除预定金）；交房付90%",
+      "source": "SQP Daily Price List 25.06.2026.pdf"
+    },
+    "One Thames Quay": {
+      "prices": {
+        "studio": "",
+        "one": "£645,000-£724,000",
+        "two": "£857,000-£1,550,000",
+        "three": "£1,225,000-£1,290,000",
+        "fourPlus": "",
+        "penthouse": "£1,550,000"
+      },
+      "reservation": "£2,000 payable at reservation",
+      "payment": "10% on exchange of contracts; 90% on completion",
+      "source": "One Thames Quay Price List - April 2026 v3.pdf"
+    },
+    "Regent's View": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£525,000-£625,000",
+        "two": "£830,000-£935,000",
+        "three": "£1,460,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "£1,000,000以下 £2,500；£1,000,000及以上 £5,000",
+      "payment": "21天内交换并支付10%（扣除预定金）；Westwood 价单显示6个月后另付10%；Wright Building 交房付90%",
+      "source": "RV-Ready to move in - Westwood 29.06.2026.pdf；RV-Ready to move in - Wright Building 29.06.2026.pdf"
+    },
+    "Cerulean Quarter": {
+      "prices": {
+        "studio": "",
+        "one": "£381,500-£406,000",
+        "two": "£479,500-£552,000",
+        "three": "£580,000-£785,500",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£2,000 reservation fee.",
+      "payment": "10% deposit payable on exchange of contracts; remaining balance payable upon completion.",
+      "source": "Cerulean Quarter - Price List - 18.06.2026.pdf; CQ-Factsheet.pdf"
+    },
+    "Queens Cross": {
+      "prices": {
+        "studio": "",
+        "one": "£477,500-£546,500",
+        "two": "售罄",
+        "three": "£795,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£2,500 reservation fee.",
+      "payment": "No.15: 21-day reservation period; 10% due on exchange less reservation fee; 90% balance payable upon completion. No.22: 21-day reservation period; 10% due on exchange less reservation fee; 2.5% at 6 months, 2.5% at 12 months, 5% at 18 months after reservation; 80% on completion.",
+      "source": "Queens Cross No.15 Price List - 11.05.2026.pdf; Queens Cross No.22 Price List - 05.05.2026.pdf"
+    },
+    "One Crown Place": {
+      "prices": {
+        "studio": "",
+        "one": "£985,000-£1,170,000",
+        "two": "£1,460,200-£1,710,000",
+        "three": "£3,225,000-£7,500,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "One Crown Place Price List March 2026.pdf"
+    }
+  },
+  "KCL": {
+    "Southbank Place": {
+      "prices": {
+        "studio": "",
+        "one": "£1,900,000-£2,000,000",
+        "two": "£2,600,000-£5,200,000",
+        "three": "£4,700,000-£6,200,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 reservation fee payable at reservation.",
+      "payment": "10% of purchase price payable on exchange of contracts; 90% payable upon completion.",
+      "source": "Seven Southbank Place -Pricelist New May 2026.pdf"
+    },
+    "The Broadway": {
+      "prices": {
+        "studio": "",
+        "one": "£1,350,000-£2,375,000",
+        "two": "£2,475,000-£3,750,000",
+        "three": "£3,900,000-£8,950,000",
+        "fourPlus": "£7,950,000-£8,150,000",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "The Broadway SW1 Price List 090626.pdf"
+    },
+    "Centre Point Residences": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "£3,200,000-£3,500,000",
+        "three": "£7,500,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Centre Point - Centre Point Residences.pdf"
+    },
+    "Triptych Bankside": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "",
+        "three": "£2,450,000-£4,500,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 non-refundable deposit payable upon reservation.",
+      "payment": "10% of purchase price less reservation deposit payable upon exchange 21 days after receipt of contracts; balance of 90% payable upon completion.",
+      "source": "Triptych Bankside - Pricelist - May 2026.pdf"
+    },
+    "Chelsea Barracks": {
+      "prices": {
+        "studio": "",
+        "one": "£3.3M",
+        "two": "From £5.55M",
+        "three": "From £8.7M",
+        "fourPlus": "£20M",
+        "penthouse": "£41M"
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Chelsea Barracks - CHELSEA BARRACKS - ONE FIVE FIELDS SQUARE PRICE LIST.pdf"
+    },
+    "Postmark": {
+      "prices": {
+        "studio": "",
+        "one": "£950,000-£1,015,000",
+        "two": "£1,315,000-£1,470,000",
+        "three": "售罄",
+        "fourPlus": "£1,875,000",
+        "penthouse": ""
+      },
+      "reservation": "£2,000; £5,000 if over £1,000,000.",
+      "payment": "10% of purchase price less reservation fee payable upon exchange of contracts; remaining 90% due upon legal completion.",
+      "source": "20.06.26 - Monograph Square - Price List Block H.pdf"
+    },
+    "One Crown Place": {
+      "prices": {
+        "studio": "",
+        "one": "£985,000-£1,170,000",
+        "two": "£1,460,200-£1,710,000",
+        "three": "£3,225,000-£7,500,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "One Crown Place Price List March 2026.pdf"
+    },
+    "One Bishopsgate Plaza": {
+      "prices": {
+        "studio": "",
+        "one": "£995,000-£1,445,000",
+        "two": "£1,800,000-£2,345,000",
+        "three": "£3,762,000-£4,180,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "Reservation Fee - £5,000 / £10,000 non-refundable fee payable (copy of passport/driving licence and utility bill no older than 3 months to be provided at this point) : Est",
+      "payment": "10% of purchase price (less reservation deposit paid) is payable within 21 days of reservation 3; 90% of the purchase price is payable upon completion ONE BISHOPSGATE PLAZA ADDRESS: One Bishopsgate Plaza, 80 Houndsditch, London EC3A 7AB https://onebgp",
+      "source": "One Bishopsgate Plaza Savills Price List May 2026.pdf"
+    },
+    "The Pembridge": {
+      "prices": {
+        "studio": "",
+        "one": "£800,000-£1,200,000",
+        "two": "£1,700,000-£1,750,000",
+        "three": "£3,250,000",
+        "fourPlus": "",
+        "penthouse": "£3,250,000"
+      },
+      "reservation": "£10,000 reservation fee per apartment.",
+      "payment": "Exchange within 21 days of reservation; 10% deposit payable on exchange; balance paid upon completion.",
+      "source": "The Pembridge Price List.pdf"
+    },
+    "Principal Tower": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "售罄",
+        "three": "£7,280,000",
+        "fourPlus": "",
+        "penthouse": "£7,280,000"
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "The Penthouse Collection_Principal_Tower JUNE 2026.pdf"
+    },
+    "The Whiteley": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "£5,350,000-£6,500,000",
+        "three": "£6,500,000-£13,500,000",
+        "fourPlus": "£9,750,000-£24,000,000",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Whiteley Pricelist 09.09.25 Agents.pdf"
+    },
+    "Holland Park Gate": {
+      "prices": {
+        "studio": "",
+        "one": "£1,500,000-£3,500,000",
+        "two": "£2,775,000-£6,500,000",
+        "three": "£8,750,000-£12,950,000",
+        "fourPlus": "£10,150,000-£35,000,000",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "525396e65f2398405ec9e71da7843423.pdf"
+    },
+    "Battersea Power Station": {
+      "prices": {
+        "studio": "£770,000-£885,000",
+        "one": "£1,425,000",
+        "two": "",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5000 reservation fee, 10% deposit for exchange (less £5000 res fee) remaining 90% to be paid upon completion Page 1 of 2; reservation fee, 10% deposit for exchange (less £5000 res fee) remaining 90% to be paid upon completion Page 1 of 2",
+      "payment": "10% deposit for exchange (less £5000 res fee) remaining 90% to be paid upon completion Page 1 of 2; Payment Terms: £5000 reservation fee, 10% deposit for exchange (less £5000 res fee) remaining 90% to be paid upon completion Page 1 of 2",
+      "source": "Battersea Power Station Pricelist Jan 2026.pdf; KOA Pricelist Jan 2026.pdf; NEW KOA Pricelist 11 May 2026.pdf; P2 Pricelist May 2026.pdf"
+    },
+    "Park Modern": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "Graphite Square": {
+      "prices": {
+        "studio": "",
+        "one": "£575,000-£800,000",
+        "two": "£825,000-£2,550,000",
+        "three": "£2,435,000-£2,600,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "Reservation Fee - £2,500 Sub Penthouses and Penthouses Loading…BackTranscriptClose side sheet/* Copyright The Closure Library Authors",
+      "payment": "10% Deposit on Exchange of Contracts & 90% due upon completion Reservation Fee - £2,500 Sub Penthouses and Penthouses Loading…BackTranscriptClose side sheet/* Copyright The Closure Library Authors",
+      "source": "Graphite Square Price List - April 2026.pdf"
+    },
+    "London Dock": {
+      "prices": {
+        "studio": "£711,000-£733,000",
+        "one": "£675,000-£826,000",
+        "two": "£985,000-£1,360,000",
+        "three": "£1,979,000-£2,296,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "£1,000,000及以下 £5,000；£1,000,000以上 £10,000",
+      "payment": "21天内交换合同并支付10%（扣除预定金）；交换后12个月付10%；交换后18个月付5%；余款交房支付",
+      "source": "London Dock G1 - Tranquillity Place - 28.06.26.pdf；London Dock G2 - Kingfisher Court - 28.06.26.pdf；London Dock G3 - Imperial Tower - 28.06.26.pdf；London Dock G4 - Chime Gardens 28.06.26.pdf；Saffron Private Price list June 28.06.26.pdf"
+    },
+    "100 Kensington": {
+      "prices": {
+        "studio": "£725,000",
+        "one": "£795,000-£1,125,000",
+        "two": "£1,190,000-£1,930,000",
+        "three": "£1,999,950-£3,400,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£2,000 reservation fee payable for apartments up to £1,000,000; £5,000 reservation fee payable for apartments from £1,000,001 upwards",
+      "payment": "10% deposit (less reservation fee paid) payable upon exchange of contracts; PAYMENT TERMS £2,000 reservation fee payable for apartments up to £1,000,000",
+      "source": "100 Kensington- The Oria Price list May 2026.pdf; 100 Kensington - Price List 29.04.26.pdf; 100 Kensington - THE ELLERY - Price list May.pdf; THE ELLERY - CHINA Price List 070526.pdf"
+    },
+    "190 Strand": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "Lincoln Square": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "Chapter House": {
+      "prices": {
+        "studio": "£895,000",
+        "one": "£895,000",
+        "two": "售罄",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": "售罄"
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Chapter House Price List.pdf"
+    },
+    "Pink Mews": {
+      "prices": {
+        "studio": "",
+        "one": "£1,299,999",
+        "two": "",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 reservation.",
+      "payment": "21 days exchange of contracts.",
+      "source": "Pinks Mews 2026 Price List.pdf"
+    },
+    "Opus": {
+      "prices": {
+        "studio": "£775,000-£875,000",
+        "one": "£1,150,000-£1,535,000",
+        "two": "£1,320,000-£3,850,000",
+        "three": "£2,950,000-£5,150,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 deposit required at reservation",
+      "payment": "20 working days to exchange contracts; 10% deposit less reservation fee; 90% due upon completion",
+      "source": "Opus - Availability List May 2026.pdf"
+    }
+  },
+  "IC": {
+    "Chelsea Barracks": {
+      "prices": {
+        "studio": "",
+        "one": "£3.3M",
+        "two": "From £5.55M",
+        "three": "From £8.7M",
+        "fourPlus": "£20M",
+        "penthouse": "£41M"
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Chelsea Barracks - CHELSEA BARRACKS - ONE FIVE FIELDS SQUARE PRICE LIST.pdf"
+    },
+    "Allen House": {
+      "prices": {
+        "studio": "",
+        "one": "£1,100,000-£1,340,000",
+        "two": "£2,600,000-£3,150,000",
+        "three": "£5,930,000",
+        "fourPlus": "",
+        "penthouse": "£7,920,000"
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Allen House Price List - May 2026.pdf"
+    },
+    "The Pembridge": {
+      "prices": {
+        "studio": "",
+        "one": "£800,000-£1,200,000",
+        "two": "£1,700,000-£1,750,000",
+        "three": "£3,250,000",
+        "fourPlus": "",
+        "penthouse": "£3,250,000"
+      },
+      "reservation": "£10,000 reservation fee per apartment.",
+      "payment": "Exchange within 21 days of reservation; 10% deposit payable on exchange; balance paid upon completion.",
+      "source": "The Pembridge Price List.pdf"
+    },
+    "Holland Park Gate": {
+      "prices": {
+        "studio": "",
+        "one": "£1,500,000-£3,500,000",
+        "two": "£2,775,000-£6,500,000",
+        "three": "£8,750,000-£12,950,000",
+        "fourPlus": "£10,150,000-£35,000,000",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "525396e65f2398405ec9e71da7843423.pdf"
+    },
+    "100 Kensington": {
+      "prices": {
+        "studio": "£725,000",
+        "one": "£795,000-£1,125,000",
+        "two": "£1,190,000-£1,930,000",
+        "three": "£1,999,950-£3,400,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£2,000 reservation fee payable for apartments up to £1,000,000; £5,000 reservation fee payable for apartments from £1,000,001 upwards",
+      "payment": "10% deposit (less reservation fee paid) payable upon exchange of contracts; PAYMENT TERMS £2,000 reservation fee payable for apartments up to £1,000,000",
+      "source": "100 Kensington- The Oria Price list May 2026.pdf; 100 Kensington - Price List 29.04.26.pdf; 100 Kensington - THE ELLERY - Price list May.pdf; THE ELLERY - CHINA Price List 070526.pdf"
+    },
+    "Lucan": {
+      "prices": {
+        "studio": "",
+        "one": "£2,200,000-£2,300,000",
+        "two": "£3,800,000-£4,400,000",
+        "three": "£8,000,000-£10,000,000",
+        "fourPlus": "",
+        "penthouse": "£16,500,000"
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "The Lucan Prices Jan 2026.pdf"
+    },
+    "Park Modern": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "Paddington Gardens": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "No. 18 Porchester Gardens": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "£2,200,000-£3,925,000",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "(DO NOT SEND OUT - INTERNAL USE ONLY) Porchester Gardens - Master Pricing May 2023.pdf"
+    },
+    "The Whiteley": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "£5,350,000-£6,500,000",
+        "three": "£6,500,000-£13,500,000",
+        "fourPlus": "£9,750,000-£24,000,000",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Whiteley Pricelist 09.09.25 Agents.pdf"
+    },
+    "Ebury": {
+      "prices": {
+        "studio": "",
+        "one": "£825,000-£1,037,500",
+        "two": "£1,225,000-£1,450,000",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "10% on Exchange and 90% on Completion Please note: This price list was correct at the time of publishing but is subject to change at a short notice without warning IMPORTANT NOTICE Savills, their clients and any joint agents give notice that: 1",
+      "source": "Ebury Price List 27.03.26.pdf"
+    },
+    "White City Living": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£745,000-£787,500",
+        "two": "£1,000,000-£1,550,000",
+        "three": "£1,720,000-£2,945,000",
+        "fourPlus": "售罄",
+        "penthouse": "£4,000,000"
+      },
+      "reservation": "£500,000-£1,500,000：£5,000；£1,500,000-£3,000,000：£10,000；£3,000,000以上：£15,000",
+      "payment": "Cascades：交换10%，12个月内再付10%，交房80%；Solaris：交换10%，交房90%",
+      "source": "WCL - Cascades Three price list - 27.06.26.pdf；WCL - Ready to move - Solaris One 27.06.26.pdf；WCL - Solaris Two 27.06.26.pdf"
+    },
+    "Television Center": {
+      "prices": {
+        "studio": "£595,000-£650,000",
+        "one": "£795,000-£880,000",
+        "two": "£995,000-£1,450,000",
+        "three": "£1,575,000-£2,200,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 up to £2,000,000; £10,000 over £2,000,000",
+      "payment": "Exchange of contracts: 10% of purchase price less reservation deposit within 28 days of receipt of draft contracts; balance 90% payable upon completion",
+      "source": "TVC The Ariel Price List 04.06.2026.pdf; TVC Scenery House Price List 04.06.26.pdf"
+    },
+    "The OWO": {
+      "prices": {
+        "studio": "",
+        "one": "From £4M",
+        "two": "From £8M",
+        "three": "From £11.3M",
+        "fourPlus": "From £17.95M",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "The OWO Residences - THE OWO RESIDENCES PRICE GUIDE.pdf"
+    },
+    "Fulham Reach": {
+      "prices": {
+        "studio": "£584,000-£623,000",
+        "one": "售罄",
+        "two": "售罄",
+        "three": "售罄",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Fulham Reach Palmer House - CN Agent use only - 24.06.26.pdf"
+    },
+    "Artisi": {
+      "prices": {
+        "studio": "",
+        "one": "£600,000-£660,000",
+        "two": "£860,000-£1,060,000",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 booking deposit payable upon reservation.",
+      "payment": "10% deposit payable on exchange of contract 42 days after reservation, less reservation fee; balance of 90% payable on legal completion.",
+      "source": "Artisi - 1 Bedroom Full Availability - Mar 2026.pdf; Artisi - 2 Bedroom Full Availability - 1 May 2026.pdf"
+    },
+    "The Newton": {
+      "prices": {
+        "studio": "",
+        "one": "£1,250,000",
+        "two": "£1,595,000-£2,995,000",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": "£2,995,000"
+      },
+      "reservation": "£5,000 for The Apartments; £10,000 for The Penthouse Collection",
+      "payment": "Reservation deposits are deductible from 10% exchange deposit",
+      "source": "The Newton - 2026 Price List.pdf"
+    },
+    "The Broadway": {
+      "prices": {
+        "studio": "",
+        "one": "£1,350,000-£2,375,000",
+        "two": "£2,475,000-£3,750,000",
+        "three": "£3,900,000-£8,950,000",
+        "fourPlus": "£7,950,000-£8,150,000",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "The Broadway SW1 Price List 090626.pdf"
+    },
+    "King's Road Park": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£725,000-£917,500",
+        "two": "£1,192,500-£1,580,000",
+        "three": "£2,250,000-£2,975,500",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "£1,000,000以下 £2,500；£1,000,000及以上 £5,000",
+      "payment": "21天内交换并支付10%（扣除预定金）；The Charlton 交换后3个月付10%，OKRP 交换后12个月付10%；交房付80%",
+      "source": "King_s Road Park - The Charlton - 1 _ 2 Bed Price List  - 28.06.2026.pdf；OKRP- 1 _ 2 -  Bed Price List - 28.06.2026.pdf；OKRP - 3 Bed - Price List - 28.06.2026.pdf"
+    },
+    "One Kensington Gardens": {
+      "prices": {
+        "studio": "",
+        "one": "From £3.95M",
+        "two": "From £4.35M",
+        "three": "From £9.5M",
+        "fourPlus": "From £10.5M-£24M",
+        "penthouse": "Available upon request"
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "One Kensington Gardens Price Guide.pdf"
+    },
+    "Opus": {
+      "prices": {
+        "studio": "£775,000-£875,000",
+        "one": "£1,150,000-£1,535,000",
+        "two": "£1,320,000-£3,850,000",
+        "three": "£2,950,000-£5,150,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 deposit required at reservation",
+      "payment": "20 working days to exchange contracts; 10% deposit less reservation fee; 90% due upon completion",
+      "source": "Opus - Availability List May 2026.pdf"
+    }
+  },
+  "CCA": {
+    "The Broadway": {
+      "prices": {
+        "studio": "",
+        "one": "£1,350,000-£2,375,000",
+        "two": "£2,475,000-£3,750,000",
+        "three": "£3,900,000-£8,950,000",
+        "fourPlus": "£7,950,000-£8,150,000",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "The Broadway SW1 Price List 090626.pdf"
+    },
+    "The OWO": {
+      "prices": {
+        "studio": "",
+        "one": "From £4M",
+        "two": "From £8M",
+        "three": "From £11.3M",
+        "fourPlus": "From £17.95M",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "The OWO Residences - THE OWO RESIDENCES PRICE GUIDE.pdf"
+    },
+    "100 George Street": {
+      "prices": {
+        "studio": "",
+        "one": "£1,850,000-£2,050,000",
+        "two": "£2,950,000-£3,375,000",
+        "three": "售罄",
+        "fourPlus": "£15,500,000",
+        "penthouse": ""
+      },
+      "reservation": "£10,000.",
+      "payment": "15 working days to exchange of contracts with deposit of 10% less the reservation fee; balance due upon completion.",
+      "source": "100GS - Availability List MAY 2025.pdf"
+    },
+    "Marylebone Mansions": {
+      "prices": {
+        "studio": "",
+        "one": "£949,500-£1,200,000",
+        "two": "£1,350,000-£2,400,000",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": "£2,400,000"
+      },
+      "reservation": "£5,000 for apartments up to £2,500,000; £10,000 for units above £2,500,000",
+      "payment": "10% of purchase price payable on exchange within 21 days, less reservation fee",
+      "source": "Marylebone Mansions - 2026 Price List.pdf"
+    },
+    "Chelsea Barracks": {
+      "prices": {
+        "studio": "",
+        "one": "£3.3M",
+        "two": "From £5.55M",
+        "three": "From £8.7M",
+        "fourPlus": "£20M",
+        "penthouse": "£41M"
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Chelsea Barracks - CHELSEA BARRACKS - ONE FIVE FIELDS SQUARE PRICE LIST.pdf"
+    },
+    "Trillum": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£1,016,000-£1,288,500",
+        "two": "£1,350,000-£1,827,000",
+        "three": "£1,850,000-£2,570,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 for purchases up to £1,000,000; £10,000 for purchases over £1,000,000; £15,000 for purchases over £2,000,000",
+      "payment": "10% upon exchange less reservation fee within 21 days of reservation; 10% 12 months from exchange; 10% 24 months from exchange; 70% on completion",
+      "source": "Trillium Price List 14.06.26.pdf"
+    },
+    "19 Bolsover Street": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "",
+        "three": "£4,595,000",
+        "fourPlus": "",
+        "penthouse": "售罄"
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "19 Bolsover Street Price List.pdf"
+    },
+    "The Bolsover": {
+      "prices": {
+        "studio": "£975,000",
+        "one": "£1,250,000-£1,640,000",
+        "two": "£1,800,000-£2,500,000",
+        "three": "£3,100,000",
+        "fourPlus": "£3,900,000",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 reservation fee.",
+      "payment": "10% deposit on exchange; 90% payable on completion.",
+      "source": "The Bolsover Price List 22 April 26.pdf"
+    },
+    "W1 Place (The Great Portland)": {
+      "prices": {
+        "studio": "",
+        "one": "£2,385,000",
+        "two": "£1,765,000-£2,550,000",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 reservation fee.",
+      "payment": "10% deposit paid on exchange in 28 days, less reservation fee; balance of 90% paid upon completion.",
+      "source": "W1 Place Pricelist JUNE 2026.pdf"
+    },
+    "Centre Point Residences": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "£3,200,000-£3,500,000",
+        "three": "£7,500,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Centre Point - Centre Point Residences.pdf"
+    },
+    "Westminster Tower": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "£2,500,000",
+        "three": "£4,100,000-£5,400,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£10,000",
+      "payment": "20% exchange deposit less reservation fee within 21 days of reservation; 5% payable 6 months from exchange; 75% balance on completion",
+      "source": "Westminster Tower Price List - 15.06.2026.pdf"
+    }
+  },
+  "CSM": {
+    "W1 Place (The Great Portland)": {
+      "prices": {
+        "studio": "",
+        "one": "£2,385,000",
+        "two": "£1,765,000-£2,550,000",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 reservation fee.",
+      "payment": "10% deposit paid on exchange in 28 days, less reservation fee; balance of 90% paid upon completion.",
+      "source": "W1 Place Pricelist JUNE 2026.pdf"
+    },
+    "19 Bolsover Street": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "",
+        "three": "£4,595,000",
+        "fourPlus": "",
+        "penthouse": "售罄"
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "19 Bolsover Street Price List.pdf"
+    },
+    "Angel Village": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£584,000-£740,500",
+        "two": "£903,000-£951,500",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£2,500 reservation fee, 10% deposit on exchange of contracts, 90% payable on completion; reservation fee, 10% deposit on exchange of contracts, 90% payable on completion",
+      "payment": "86% Q1 2027 2 Bedroom Apartments Unit Building Bedrooms Floor Area (sqm) Area (sqft) Asking Price Rental Yield Completion 2; 72% Q3 2027 3 Bedroom Apartments Unit Building Bedrooms Floor Area (sqm) Area (sqft) Asking Price Rental Yield Completion 22; 86% Q4 2026 2 Bedroom Apartments Unit Building Bedrooms Floor Area (sqm) Area (sqft) Asking Price Rental Yield Completion 2; 72% Q3 2027 3 Bedroom Apartments Unit Building Bedrooms Floor Area (sqm) Area (sqft) Asking Price Rental Yield Completion 22",
+      "source": "Angel Village Price List June 2026.pdf; Angel Village Price List May 2026(1).pdf; Angel Village Price List – (April 2026).pdf"
+    },
+    "Fitzroy Walk": {
+      "prices": {
+        "studio": "",
+        "one": "£1,025,000-£1,200,000",
+        "two": "",
+        "three": "£3,100,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Fitzroy Walk - 2026 Price List.pdf"
+    },
+    "One Bishopsgate Plaza": {
+      "prices": {
+        "studio": "",
+        "one": "£995,000-£1,445,000",
+        "two": "£1,800,000-£2,345,000",
+        "three": "£3,762,000-£4,180,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "Reservation Fee - £5,000 / £10,000 non-refundable fee payable (copy of passport/driving licence and utility bill no older than 3 months to be provided at this point) : Est",
+      "payment": "10% of purchase price (less reservation deposit paid) is payable within 21 days of reservation 3; 90% of the purchase price is payable upon completion ONE BISHOPSGATE PLAZA ADDRESS: One Bishopsgate Plaza, 80 Houndsditch, London EC3A 7AB https://onebgp",
+      "source": "One Bishopsgate Plaza Savills Price List May 2026.pdf"
+    },
+    "Postmark": {
+      "prices": {
+        "studio": "",
+        "one": "£950,000-£1,015,000",
+        "two": "£1,315,000-£1,470,000",
+        "three": "售罄",
+        "fourPlus": "£1,875,000",
+        "penthouse": ""
+      },
+      "reservation": "£2,000; £5,000 if over £1,000,000.",
+      "payment": "10% of purchase price less reservation fee payable upon exchange of contracts; remaining 90% due upon legal completion.",
+      "source": "20.06.26 - Monograph Square - Price List Block H.pdf"
+    },
+    "Camden Goods Yard": {
+      "prices": {
+        "studio": "£587,000-£608,000",
+        "one": "£746,000-£853,000",
+        "two": "£1,177,000-£1,424,000",
+        "three": "£1,399,000-£1,616,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "£999,999及以下 £5,000；£1,000,000及以上 £10,000",
+      "payment": "28天内交换合同；交换时10%；交换后6个月付5%；交房付85%",
+      "source": "Camden Goods Yard - The Gallery - Pricelist - 28.06.26.pdf；Camden Goods Yard - The Regent  - Pricelist 28.06.26.pdf"
+    },
+    "Woodberry Down": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£515,000-£610,000",
+        "two": "£785,000-£1,097,500",
+        "three": "£892,500-£1,795,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "The Crown：二/三居 £5,000；其他价单未显示统一金额",
+      "payment": "The Crown：28天内交换，交换时10%（扣除预定金），交房90%；其他价单付款条件未显示",
+      "source": "The Grove Collection - The Alba Pricelist 22.06.2026.pdf；The Grove Collection - The Iris Pricelist 22.06.2026.pdf；WD The Crown Collection Penthouse Price List 22.06.2026.pdf；Woodberry Down - Editions Price List 22.06.2026.pdf"
+    },
+    "250 City Road": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "One Carrington": {
+      "prices": {
+        "studio": "",
+        "one": "£2,950,000-£3,250,000",
+        "two": "£5,500,000-£6,500,000",
+        "three": "£6,500,000-£12,500,000",
+        "fourPlus": "£12,950,000",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "One Carrington - Customer Price List - November 2024 Release.pdf"
+    },
+    "Triptych Bankside": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "",
+        "three": "£2,450,000-£4,500,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 non-refundable deposit payable upon reservation.",
+      "payment": "10% of purchase price less reservation deposit payable upon exchange 21 days after receipt of contracts; balance of 90% payable upon completion.",
+      "source": "Triptych Bankside - Pricelist - May 2026.pdf"
+    },
+    "The Stage": {
+      "prices": {
+        "studio": "£550,000",
+        "one": "£682,500-£757,500",
+        "two": "£1,105,000",
+        "three": "£2,000,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£1,000 reservation fee.",
+      "payment": "价单未显示",
+      "source": "The Stage - Customer Price List - 19.06.2026.pdf"
+    },
+    "Trillium": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£1,016,000-£1,320,500",
+        "two": "£1,350,000-£1,897,000",
+        "three": "£2,005,000-£2,636,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "£1,000,000及以下 £5,000；£1,000,000以上 £10,000；£2,000,000以上 £15,000",
+      "payment": "21天内交换并支付10%（扣除预定金）；交换后12个月付10%；交换后24个月付10%；交房付70%",
+      "source": "Trillium Price List 28.06.26.pdf"
+    },
+    "The Arc": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "The OWO": {
+      "prices": {
+        "studio": "",
+        "one": "From £4M",
+        "two": "From £8M",
+        "three": "From £11.3M",
+        "fourPlus": "From £17.95M",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "The OWO Residences - THE OWO RESIDENCES PRICE GUIDE.pdf"
+    },
+    "Arthouse": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "售罄",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "Cadence": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "售罄",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "Gasholders": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "Capella": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "售罄",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "Tapestry": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    }
+  },
+  "LCC": {
+    "Opus": {
+      "prices": {
+        "studio": "£775,000-£875,000",
+        "one": "£1,150,000-£1,535,000",
+        "two": "£1,320,000-£3,850,000",
+        "three": "£2,950,000-£5,150,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 deposit required at reservation",
+      "payment": "20 working days to exchange contracts; 10% deposit less reservation fee; 90% due upon completion",
+      "source": "Opus - Availability List May 2026.pdf"
+    },
+    "Oval Village": {
+      "prices": {
+        "studio": "£599,500",
+        "one": "£680,000-£750,000",
+        "two": "£905,000-£1,225,000",
+        "three": "£1,450,000-£2,050,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "£1,000,000及以下 £5,000；£1,000,000以上 £10,000；£2,000,000以上 £15,000",
+      "payment": "The Pinnacle Core 1/2：28天内交换，交换时10%，交房90%；The Halo Core 1/2：21天内交换，交换时10%，12个月10%，交房80%；Core 3：21天内交换，交换时10%，12个月10%，24个月5%，交房75%",
+      "source": "Oval Village - The Pinnacle Pricelist  - 28.06.2026.pdf；Oval Village The Halo - The Residences - Price list - 28.06.2026.pdf；Oval Village The Halo - Penthouse - Price list - 28.06.2026.pdf"
+    },
+    "Southbank Place": {
+      "prices": {
+        "studio": "",
+        "one": "£1,900,000-£2,000,000",
+        "two": "£2,600,000-£5,200,000",
+        "three": "£4,700,000-£6,200,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 reservation fee payable at reservation.",
+      "payment": "10% of purchase price payable on exchange of contracts; 90% payable upon completion.",
+      "source": "Seven Southbank Place -Pricelist New May 2026.pdf"
+    },
+    "Triptych Bankside": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "",
+        "three": "£2,450,000-£4,500,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 non-refundable deposit payable upon reservation.",
+      "payment": "10% of purchase price less reservation deposit payable upon exchange 21 days after receipt of contracts; balance of 90% payable upon completion.",
+      "source": "Triptych Bankside - Pricelist - May 2026.pdf"
+    },
+    "Brigade Court": {
+      "prices": {
+        "studio": "£665,000-£670,000",
+        "one": "£695,000-£855,000",
+        "two": "",
+        "three": "",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "Brigade Court Price List.pdf"
+    },
+    "River Park Tower": {
+      "prices": {
+        "studio": "£1,265,000",
+        "one": "£1,447,000",
+        "two": "£2,021,000-£2,411,000",
+        "three": "£4,263,000",
+        "fourPlus": "£4,460,000-£13,858,000",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 for properties up to and including £2,000,000; £10,000 for properties over £2,000,000",
+      "payment": "Exchange of contracts: 10% of purchase price less reservation deposit; completion: 90% of purchase price",
+      "source": "Tower East Pricelist 8th June 2026.pdf; Tower West Pricelist 8th June 2026.pdf"
+    },
+    "DAMAC Tower": {
+      "prices": {
+        "studio": "£698,000",
+        "one": "£838,000-£1,003,000",
+        "two": "£1,158,000-£1,197,000",
+        "three": "£2,738,000",
+        "fourPlus": "£10,664,000-£11,313,000",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "10% immediate deposit; 90% on completion.",
+      "source": "DAMAC TOWER NINE ELMS LONDON_Availability(1).pdf"
+    },
+    "The Edit": {
+      "prices": {
+        "studio": "£701,000-£770,000",
+        "one": "£676,000-£1,060,000",
+        "two": "£1,060,000-£1,525,000",
+        "three": "£2,300,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£2,500 for properties up to £1 million; £5,000 for properties over £1 million.",
+      "payment": "21-day reservation period; 10% due on exchange less reservation fee; 2.5% at 6 months, 2.5% at 12 months, 5% at 18 months, 5% at 24 months after reservation; 75% balance on completion.",
+      "source": "The Edit Price List - 05.05.2026.pdf"
+    },
+    "Keybridge": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "One Blackfriars": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "",
+        "three": "",
+        "fourPlus": "售罄",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "Embassy Gardens": {
+      "prices": {
+        "studio": "£770,000-£795,000",
+        "one": "£865,000-£1,002,500",
+        "two": "£1,515,000-£2,255,000",
+        "three": "£2,115,000-£4,062,500",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£5,000 fee payable on reservation; £10,000 for apartments over £2M.",
+      "payment": "Deposit one: 10% of agreed purchase price less reservation fee payable upon exchange of contracts; deposit two: 5% payable 12 months after exchange; remaining 85% payable upon completion.",
+      "source": "The Capston Price List - 2nd June 2026.pdf"
+    },
+    "Bermondsey Place": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£515,000-£555,000",
+        "two": "£710,000-£827,500",
+        "three": "£815,000-£900,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "开间/一居室 £2,500；二/三居室 £5,000",
+      "payment": "28天内交换合同；交换时10%（扣除预定金）；交换后6个月付10%；交换后12个月付5%；交房付75%",
+      "source": "25.06.2026 Bermondsey Place Distribution Price List.pdf"
+    },
+    "The Broadway": {
+      "prices": {
+        "studio": "",
+        "one": "£1,350,000-£2,375,000",
+        "two": "£2,475,000-£3,750,000",
+        "three": "£3,900,000-£8,950,000",
+        "fourPlus": "£7,950,000-£8,150,000",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": "The Broadway SW1 Price List 090626.pdf"
+    },
+    "Graphite Square": {
+      "prices": {
+        "studio": "",
+        "one": "£575,000-£800,000",
+        "two": "£825,000-£2,550,000",
+        "three": "£2,435,000-£2,600,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "Reservation Fee - £2,500 Sub Penthouses and Penthouses Loading…BackTranscriptClose side sheet/* Copyright The Closure Library Authors",
+      "payment": "10% Deposit on Exchange of Contracts & 90% due upon completion Reservation Fee - £2,500 Sub Penthouses and Penthouses Loading…BackTranscriptClose side sheet/* Copyright The Closure Library Authors",
+      "source": "Graphite Square Price List - April 2026.pdf"
+    },
+    "190 Strand": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "",
+        "three": "",
+        "fourPlus": "售罄",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "Lincoln Square": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "Postmark": {
+      "prices": {
+        "studio": "",
+        "one": "£950,000-£1,015,000",
+        "two": "£1,315,000-£1,470,000",
+        "three": "售罄",
+        "fourPlus": "£1,875,000",
+        "penthouse": ""
+      },
+      "reservation": "£2,000; £5,000 if over £1,000,000.",
+      "payment": "10% of purchase price less reservation fee payable upon exchange of contracts; remaining 90% due upon legal completion.",
+      "source": "20.06.26 - Monograph Square - Price List Block H.pdf"
+    },
+    "Battersea Power Station": {
+      "prices": {
+        "studio": "£770,000-£885,000",
+        "one": "£1,425,000",
+        "two": "",
+        "three": "",
+        "fourPlus": "售罄",
+        "penthouse": ""
+      },
+      "reservation": "£5000 reservation fee, 10% deposit for exchange (less £5000 res fee) remaining 90% to be paid upon completion Page 1 of 2; reservation fee, 10% deposit for exchange (less £5000 res fee) remaining 90% to be paid upon completion Page 1 of 2",
+      "payment": "10% deposit for exchange (less £5000 res fee) remaining 90% to be paid upon completion Page 1 of 2; Payment Terms: £5000 reservation fee, 10% deposit for exchange (less £5000 res fee) remaining 90% to be paid upon completion Page 1 of 2",
+      "source": "Battersea Power Station Pricelist Jan 2026.pdf; KOA Pricelist Jan 2026.pdf; NEW KOA Pricelist 11 May 2026.pdf; P2 Pricelist May 2026.pdf"
+    },
+    "Trillium": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£1,016,000-£1,320,500",
+        "two": "£1,350,000-£1,897,000",
+        "three": "£2,005,000-£2,636,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "£1,000,000及以下 £5,000；£1,000,000以上 £10,000；£2,000,000以上 £15,000",
+      "payment": "21天内交换并支付10%（扣除预定金）；交换后12个月付10%；交换后24个月付10%；交房付70%",
+      "source": "Trillium Price List 28.06.26.pdf"
+    },
+    "The Founding": {
+      "prices": {
+        "studio": "£564,000-£574,000",
+        "one": "£652,000-£731,000",
+        "two": "£938,000-£1,098,000",
+        "three": "£1,484,000-£1,516,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "Refundable reservation deposit: £2,000 for sales up to £1 million; £5,000 for £1 million and over.",
+      "payment": "10% payable on exchange; 90% payable on completion.",
+      "source": "The Founding Pricelist 01.06.2026 (1).pdf"
+    },
+    "Two Fifty One": {
+      "prices": {
+        "studio": "",
+        "one": "售罄",
+        "two": "",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "价单未显示",
+      "payment": "价单未显示",
+      "source": ""
+    },
+    "The Wilderly": {
+      "prices": {
+        "studio": "£647,000-£692,000",
+        "one": "£712,000-£902,000",
+        "two": "£945,000-£1,310,000",
+        "three": "售罄",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£2,500",
+      "payment": "10% less reservation fee payable on exchange of contracts; 90% payable on completion",
+      "source": "The Wilderly Tower Availability List May 2026.pdf; The Wilderly Mansion Availability List May 2026.pdf"
+    },
+    "Westminster Tower": {
+      "prices": {
+        "studio": "",
+        "one": "",
+        "two": "£2,500,000",
+        "three": "£4,100,000-£5,400,000",
+        "fourPlus": "",
+        "penthouse": ""
+      },
+      "reservation": "£10,000",
+      "payment": "20% exchange deposit less reservation fee within 21 days of reservation; 5% payable 6 months from exchange; 75% balance on completion",
+      "source": "Westminster Tower Price List - 15.06.2026.pdf"
+    }
+  }
 };
 
 function csvToRows(text) {
@@ -984,14 +3138,200 @@ let dataLoaded = true; // data is immediately available from stub
 // PRICE BANDS
 // ============================================================
 const PRICE_BANDS = [
-  { label: 'Under £500k',          min: 0,       max: 500000,   color: '#4caf50' },
-  { label: '£500k – £700k',        min: 500000,  max: 700000,   color: '#8bc34a' },
-  { label: '£700k – £1m',          min: 700000,  max: 1000000,  color: '#ffc107' },
-  { label: '£1m – £2m',            min: 1000000, max: 2000000,  color: '#ff9800' },
-  { label: '£2m – £5m',            min: 2000000, max: 5000000,  color: '#f44336' },
-  { label: 'Above £5m',            min: 5000000, max: Infinity, color: '#e040fb' },
+  { label: 'Under £500k',          min: 0,       max: 500000,   color: '#7a82a0' },
+  { label: '£500k – £700k',        min: 500000,  max: 700000,   color: '#6d7e9e' },
+  { label: '£700k – £1m',          min: 700000,  max: 1000000,  color: '#5f779f' },
+  { label: '£1m – £2m',            min: 1000000, max: 2000000,  color: '#4f6f9d' },
+  { label: '£2m – £5m',            min: 2000000, max: 5000000,  color: '#3f5f92' },
+  { label: 'Above £5m',            min: 5000000, max: Infinity, color: '#2f4b78' },
   { label: 'Price on Application', min: -1,      max: -1,       color: '#7a82a0' },
 ];
+
+
+const BED_CATEGORIES = [
+  { key: 'studio', label: 'Studio' },
+  { key: 'one', label: '1 Bed' },
+  { key: 'two', label: '2 Bed' },
+  { key: 'three', label: '3 Bed' },
+  { key: 'fourPlus', label: '4+ Bed' },
+  { key: 'penthouse', label: 'Penthouse' },
+];
+
+function normalizeDevName(name) {
+  return String(name || '').trim().replace(/’/g, "'");
+}
+
+function looseDevKey(name) {
+  return normalizeDevName(name)
+    .toLowerCase()
+    .replace(/\bthe\b/g, '')
+    .replace(/\(.*?\)/g, '')
+    .replace(/[^a-z0-9]+/g, '');
+}
+
+function isSoldOut(value) {
+  return /售罄|sold|reserved|on hold|under offer/i.test(String(value || ''));
+}
+
+function isInquiryPrice(value) {
+  const text = String(value || '').trim();
+  return !text || text === 'POA' || text.includes('询') || text.includes('查') || text.includes('价待询') || text.includes('Price on Application');
+}
+
+function parseCurrencyValues(value) {
+  const text = String(value || '').replace(/拢/g, '£');
+  if (isInquiryPrice(text) || isSoldOut(text)) return [];
+  return [...text.matchAll(/£\s*([0-9][0-9,]*(?:\.\d+)?)\s*(m|million)?/gi)]
+    .map(match => {
+      const base = parseFloat(match[1].replace(/,/g, ''));
+      if (!Number.isFinite(base)) return NaN;
+      return match[2] ? base * 1000000 : base;
+    })
+    .filter(num => Number.isFinite(num));
+}
+
+function formatCurrency(num) {
+  return '£' + Math.round(num).toLocaleString('en-GB');
+}
+
+function expandMillionPriceText(text) {
+  return String(text || '').replace(/£\s*([0-9][0-9,]*(?:\.\d+)?)\s*(m|million)\b/gi, (_, raw) => {
+    const base = parseFloat(raw.replace(/,/g, ''));
+    if (!Number.isFinite(base)) return _;
+    return formatCurrency(base * 1000000);
+  });
+}
+
+function normalizePriceDisplay(value) {
+  const text = String(value || '').trim().replace(/拢/g, '£');
+  if (!text) return '';
+  if (isSoldOut(text)) return 'Sold out';
+  if (isInquiryPrice(text)) return 'POA';
+  return expandMillionPriceText(text);
+}
+
+function getPriceLookup(dev, uniKey) {
+  const byUni = PRICE_LOOKUP[uniKey] || {};
+  const name = normalizeDevName(dev.name);
+  if (byUni[name]) return byUni[name];
+  const lower = name.toLowerCase();
+  const foundKey = Object.keys(byUni).find(key => normalizeDevName(key).toLowerCase() === lower);
+  if (foundKey) return byUni[foundKey];
+  const loose = looseDevKey(name);
+  const looseKey = Object.keys(byUni).find(key => looseDevKey(key) === loose);
+  return looseKey ? byUni[looseKey] : null;
+}
+
+function buildFallbackPriceDetails(dev) {
+  return {
+    prices: {
+      studio: '',
+      one: '',
+      two: '',
+      three: '',
+      fourPlus: '',
+      penthouse: '',
+    },
+    reservation: '',
+    payment: '',
+    source: '',
+    fallback: true,
+  };
+}
+
+function attachPriceDetails(dev, uniKey) {
+  if (dev.priceDetails) return dev.priceDetails;
+  const details = getPriceLookup(dev, uniKey) || buildFallbackPriceDetails(dev);
+  dev.priceDetails = details;
+  const values = getRelevantPriceValues(dev, []);
+  if (values.length) {
+    dev.price = formatCurrency(Math.min(...values));
+  }
+  return details;
+}
+
+function getRelevantPriceValues(dev, bedKeys) {
+  const details = dev.priceDetails || buildFallbackPriceDetails(dev);
+  const selected = bedKeys && bedKeys.length ? bedKeys : BED_CATEGORIES.map(b => b.key);
+  const values = [];
+  selected.forEach(key => {
+    values.push(...parseCurrencyValues(details.prices?.[key]));
+  });
+  if (!values.length && details.fallback) values.push(...parseCurrencyValues(dev.price));
+  return values;
+}
+
+function getAvailableBedKeys(dev) {
+  const details = dev.priceDetails || buildFallbackPriceDetails(dev);
+  return BED_CATEGORIES
+    .filter(cat => parseCurrencyValues(details.prices?.[cat.key]).length > 0)
+    .map(cat => cat.key);
+}
+
+function getBedroomPriceBand(dev) {
+  const selectedBeds = activeBeds && activeBeds.size ? [...activeBeds] : [];
+  const values = getRelevantPriceValues(dev, selectedBeds);
+  if (!values.length) return 6;
+  const val = Math.min(...values);
+  for (let i = 0; i < PRICE_BANDS.length - 1; i++) {
+    if (val >= PRICE_BANDS[i].min && val < PRICE_BANDS[i].max) return i;
+  }
+  return PRICE_BANDS.length - 2;
+}
+
+function matchesPriceBand(dev, bandIdx) {
+  if (bandIdx === 6) return getRelevantPriceValues(dev, [...activeBeds]).length === 0;
+  const values = getRelevantPriceValues(dev, [...activeBeds]);
+  return values.some(val => val >= PRICE_BANDS[bandIdx].min && val < PRICE_BANDS[bandIdx].max);
+}
+
+function priceSummary(dev) {
+  const values = getRelevantPriceValues(dev, []);
+  if (!values.length) return 'Price on request';
+  return 'From ' + formatCurrency(Math.min(...values));
+}
+
+function bedroomChipHtml(dev) {
+  const details = dev.priceDetails || buildFallbackPriceDetails(dev);
+  return '<div class="bed-chip-row">' + BED_CATEGORIES
+    .filter(cat => details.prices?.[cat.key])
+    .map(cat => {
+      const available = parseCurrencyValues(details.prices[cat.key]).length > 0;
+      return `<span class="bed-mini-chip ${available ? 'available' : ''}">${cat.label}</span>`;
+    })
+    .join('') + '</div>';
+}
+
+function priceMatrixHtml(dev) {
+  const details = dev.priceDetails || buildFallbackPriceDetails(dev);
+  const rows = BED_CATEGORIES
+    .filter(cat => details.prices?.[cat.key])
+    .map(cat => {
+      const value = normalizePriceDisplay(details.prices[cat.key]);
+      const sold = value === 'Sold out' || value === 'POA';
+      return `<div class="price-row">
+        <span class="price-row-label">${cat.label}</span>
+        <span class="price-row-value ${sold ? 'sold' : ''}">${value}</span>
+      </div>`;
+    })
+    .join('');
+  if (rows) return `<div class="price-matrix">${rows}</div>`;
+  return `<div class="iw-note">Price details are not available yet.</div>`;
+}
+
+function priceNotesHtml(dev) {
+  const details = dev.priceDetails || {};
+  const reservation = details.reservation ? `<div class="iw-note"><strong>Reservation:</strong> ${details.reservation}</div>` : '';
+  const payment = details.payment ? `<div class="iw-note"><strong>Payment:</strong> ${details.payment}</div>` : '';
+  const source = details.source ? `<div class="iw-note"><strong>Source:</strong> ${details.source}</div>` : '';
+  return reservation + payment + source;
+}
+
+function enrichUniversityPrices() {
+  Object.entries(UNIVERSITIES).forEach(([uniKey, uni]) => {
+    uni.developments.forEach(dev => attachPriceDetails(dev, uniKey));
+  });
+}
 
 const STATUS_BANDS = [
   { key: 'completed', label: '✅ Completed',  color: '#4caf50', icon: '✅' },
@@ -1034,6 +3374,7 @@ function getBand(priceStr) {
 }
 
 let activeBands = new Set();
+let activeBeds = new Set();
 let activeStatuses = new Set();
 
 // ── Price filter chips ──
@@ -1042,7 +3383,7 @@ function renderFilterChips(uniKey) {
   const grid = document.getElementById('filter-grid');
   grid.innerHTML = '';
   const counts = new Array(PRICE_BANDS.length).fill(0);
-  uni.developments.forEach(dev => { counts[getBand(dev.price)]++; });
+  uni.developments.forEach(dev => { attachPriceDetails(dev, uniKey); counts[getBedroomPriceBand(dev)]++; });
   PRICE_BANDS.forEach((band, i) => {
     if (counts[i] === 0) return;
     const chip = document.createElement('div');
@@ -1059,6 +3400,31 @@ function renderFilterChips(uniKey) {
 }
 
 // ── Status filter chips ──
+
+function renderBedChips(uniKey) {
+  const uni = UNIVERSITIES[uniKey];
+  const grid = document.getElementById('bed-grid');
+  grid.innerHTML = '';
+  const counts = {};
+  BED_CATEGORIES.forEach(b => { counts[b.key] = 0; });
+  uni.developments.forEach(dev => {
+    attachPriceDetails(dev, uniKey);
+    getAvailableBedKeys(dev).forEach(key => { counts[key]++; });
+  });
+  BED_CATEGORIES.forEach((bed) => {
+    if (counts[bed.key] === 0) return;
+    const chip = document.createElement('div');
+    chip.className = 'filter-chip' + (activeBeds.has(bed.key) ? ' active' : '');
+    chip.innerHTML = `
+      <div class="filter-dot" style="${activeBeds.has(bed.key) ? 'background:var(--gold)' : ''}"></div>
+      <span class="filter-chip-label">${bed.label}</span>
+      <span class="filter-chip-count">${counts[bed.key]}</span>
+    `;
+    chip.addEventListener('click', () => toggleBed(bed.key, uniKey));
+    grid.appendChild(chip);
+  });
+}
+
 function renderStatusChips(uniKey) {
   const uni = UNIVERSITIES[uniKey];
   const grid = document.getElementById('status-grid');
@@ -1088,6 +3454,14 @@ function toggleBand(bandIdx, uniKey) {
   applyFilter(uniKey);
 }
 
+function toggleBed(key, uniKey) {
+  activeBeds.has(key) ? activeBeds.delete(key) : activeBeds.add(key);
+  document.getElementById('bed-reset').style.display = activeBeds.size > 0 ? 'block' : 'none';
+  renderBedChips(uniKey);
+  renderFilterChips(uniKey);
+  applyFilter(uniKey);
+}
+
 function toggleStatus(key, uniKey) {
   activeStatuses.has(key) ? activeStatuses.delete(key) : activeStatuses.add(key);
   document.getElementById('status-reset').style.display = activeStatuses.size > 0 ? 'block' : 'none';
@@ -1106,6 +3480,14 @@ function clearPriceFilters() {
   applyFilter(activeUni);
 }
 
+function clearBedFilters() {
+  activeBeds.clear();
+  document.getElementById('bed-reset').style.display = 'none';
+  renderBedChips(activeUni);
+  renderFilterChips(activeUni);
+  applyFilter(activeUni);
+}
+
 function clearStatusFilters() {
   activeStatuses.clear();
   document.getElementById('status-reset').style.display = 'none';
@@ -1115,6 +3497,7 @@ function clearStatusFilters() {
 
 function clearFilters() {
   clearPriceFilters();
+  clearBedFilters();
   clearStatusFilters();
 }
 
@@ -1127,9 +3510,11 @@ function applyFilter(uniKey) {
   items.forEach((el, i) => {
     const dev = sorted[i];
     if (!dev) return;
-    const inPrice  = activeBands.size === 0 || activeBands.has(getBand(dev.price));
+    attachPriceDetails(dev, uniKey);
+    const inBed = activeBeds.size === 0 || getAvailableBedKeys(dev).some(key => activeBeds.has(key));
+    const inPrice = activeBands.size === 0 || [...activeBands].some(bandIdx => matchesPriceBand(dev, bandIdx));
     const inStatus = activeStatuses.size === 0 || activeStatuses.has(getStatusKey(dev.ready));
-    const visible  = inPrice && inStatus;
+    const visible = inBed && inPrice && inStatus;
     el.classList.toggle('hidden', !visible);
     if (visible) visibleCount++;
     if (mapLoaded && markers[i]) markers[i].setVisible(visible);
@@ -1144,7 +3529,7 @@ function applyFilter(uniKey) {
     msg.innerHTML = '😕 No developments match.<br><span style="color:var(--gold);cursor:pointer" onclick="clearFilters()">Clear all filters</span>';
     list.appendChild(msg);
   }
-  const anyFilter = activeBands.size > 0 || activeStatuses.size > 0;
+  const anyFilter = activeBands.size > 0 || activeBeds.size > 0 || activeStatuses.size > 0;
   document.getElementById('count-badge').textContent =
     anyFilter ? visibleCount + ' shown' : uni.developments.length + ' developments';
 }
@@ -1161,10 +3546,13 @@ function renderSidebar(uniKey) {
   document.getElementById('count-badge').textContent = uni.developments.length + ' developments';
 
   activeBands.clear();
+  activeBeds.clear();
   activeStatuses.clear();
   document.getElementById('filter-reset').style.display = 'none';
+  document.getElementById('bed-reset').style.display = 'none';
   document.getElementById('status-reset').style.display = 'none';
   renderFilterChips(uniKey);
+  renderBedChips(uniKey);
   renderStatusChips(uniKey);
 
   const list = document.getElementById('dev-list');
@@ -1175,16 +3563,17 @@ function renderSidebar(uniKey) {
     const div = document.createElement('div');
     div.className = 'dev-item';
     div.style.borderLeftColor = uni.color;
-    const band = PRICE_BANDS[getBand(dev.price)];
+    attachPriceDetails(dev, uniKey);
     div.innerHTML = `
       <div class="dev-item-name">${dev.name}</div>
       <div class="dev-item-meta">
         <span class="time-pill">⏱ ${dev.time} min</span>
         <span>${dev.area}</span>
-        ${dev.price !== '询价' && dev.price !== '现查'
-          ? `<span class="price-tag" style="color:${band.color}">${dev.price}</span>`
-          : '<span style="color:#7a82a0">价格待询</span>'}
       </div>
+      <div class="dev-item-price-line">
+        <span class="price-tag">${priceSummary(dev)}</span>
+      </div>
+      ${bedroomChipHtml(dev)}
     `;
     div.addEventListener('click', () => {
       if (!mapLoaded) return;
@@ -1360,9 +3749,11 @@ function showInfoWindow(marker, dev, uniKey) {
       <div class="iw-row"><strong>Area:</strong>${dev.area}</div>
       <div class="iw-row"><strong>Address:</strong>${dev.address}</div>
       ${devLabel}
-      <div class="iw-row"><strong>Price:</strong><span style="color:#2e7d32">${dev.price}</span></div>
+      <div class="iw-row"><strong>Completion:</strong>${dev.ready}</div>
       <div class="iw-row"><strong>Beds:</strong>${dev.beds}</div>
-      <div class="iw-row"><strong>Status:</strong>${dev.ready}</div>
+      <div class="iw-section-label">Bedroom pricing</div>
+      ${priceMatrixHtml(dev)}
+      ${priceNotesHtml(dev)}
     </div>
   `;
   infoWindow.setContent(html);
@@ -1392,6 +3783,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 });
 
 // Init — render immediately from stub data
+enrichUniversityPrices();
 renderSidebar('UCL');
 
 // ============================================================

@@ -793,6 +793,10 @@
     @page {
       margin: 12mm;
     }
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
     body > *:not(#export-report) { display: none !important; }
     #export-report {
       display: block !important;
@@ -817,7 +821,8 @@
       padding: 28mm 8mm 16mm;
       box-sizing: border-box;
       color: #ffffff;
-      background: #1A2B4A;
+      background-color: #1A2B4A !important;
+      box-shadow: inset 0 0 0 1000px #1A2B4A;
       border-radius: 0;
     }
     .export-cover::before {
@@ -825,21 +830,21 @@
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(135deg, rgba(26,43,74,0.98) 0%, rgba(26,43,74,0.84) 42%, rgba(26,43,74,0.42) 100%);
-      z-index: 1;
+        linear-gradient(135deg, rgba(26,43,74,1) 0%, rgba(26,43,74,0.92) 43%, rgba(26,43,74,0.56) 100%);
+      z-index: 2;
     }
     .export-cover-map {
       position: absolute;
-      right: -56mm;
-      bottom: 8mm;
-      width: 236mm;
+      right: -34mm;
+      bottom: 26mm;
+      width: 218mm;
       height: auto;
-      opacity: 0.58;
-      z-index: 0;
+      opacity: 0.82;
+      z-index: 1;
     }
     .export-cover-content {
       position: relative;
-      z-index: 2;
+      z-index: 3;
     }
     .export-cover-kicker {
       color: #2BABB3;

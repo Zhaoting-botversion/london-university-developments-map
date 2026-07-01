@@ -835,12 +835,20 @@
     }
     .export-cover-map {
       position: absolute;
-      right: -34mm;
-      bottom: 26mm;
-      width: 218mm;
+      right: -28mm;
+      bottom: 18mm;
+      width: 226mm;
       height: auto;
-      opacity: 0.82;
+      opacity: 0.72;
       z-index: 1;
+    }
+    .export-cover-logo {
+      position: absolute;
+      right: 10mm;
+      top: 12mm;
+      width: 128px;
+      height: auto;
+      z-index: 4;
     }
     .export-cover-content {
       position: relative;
@@ -860,7 +868,7 @@
       line-height: 1.18;
       color: #ffffff;
       margin-bottom: 14px;
-      max-width: 455px;
+      max-width: 470px;
     }
     .export-cover-subtitle {
       color: #ffffff;
@@ -880,7 +888,7 @@
       border-left: 5px solid #2BABB3;
       padding: 10px 0 10px 14px;
       margin: 20px 0 16px;
-      max-width: 545px;
+      max-width: 505px;
       font-size: 11px;
       line-height: 1.72;
       color: rgba(255,255,255,0.92);
@@ -897,7 +905,7 @@
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
       margin-top: 10px;
-      max-width: 545px;
+      max-width: 505px;
     }
     .export-stat {
       border: 1px solid rgba(201,168,76,0.82);
@@ -922,7 +930,7 @@
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
       margin-top: 8px;
-      max-width: 545px;
+      max-width: 505px;
     }
     .export-market-card {
       background: rgba(255,255,255,0.1);
@@ -947,7 +955,7 @@
       color: #2BABB3;
       font-size: 11px;
       font-weight: 700;
-      max-width: 545px;
+      max-width: 505px;
     }
     .export-section-title {
       color: #1A2B4A;
@@ -4149,8 +4157,10 @@ function buildExportCards(entries) {
 
 function buildCompanyCover(data) {
   const mapSrc = new URL('assets/landma-global-map-cover.jpg', window.location.href).href;
+  const logoSrc = new URL('assets/landma-logo.png', window.location.href).href;
   return `
     <section class="export-cover">
+      <img class="export-cover-logo" src="${logoSrc}" alt="LANDMA GLOBAL">
       <img class="export-cover-map" src="${mapSrc}" alt="LANDMA global network map">
       <div class="export-cover-content">
         <div class="export-cover-kicker">LANDMA GLOBAL</div>
@@ -4197,6 +4207,18 @@ function renderExportReport(data, introText) {
   `;
 }
 
+function waitForExportImages() {
+  const images = [...document.querySelectorAll('#export-report img')];
+  if (!images.length) return Promise.resolve();
+  return Promise.all(images.map(img => {
+    if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+    return new Promise(resolve => {
+      img.addEventListener('load', resolve, { once: true });
+      img.addEventListener('error', resolve, { once: true });
+    });
+  })).then(() => new Promise(resolve => setTimeout(resolve, 250)));
+}
+
 function openExportIntroEditor(introText) {
   const modal = document.getElementById('export-intro-modal');
   const textarea = document.getElementById('export-intro-textarea');
@@ -4213,7 +4235,7 @@ function closeExportIntroEditor() {
   pendingExportData = null;
 }
 
-function confirmExportIntro() {
+async function confirmExportIntro() {
   if (!pendingExportData) return;
   const introText = document.getElementById('export-intro-textarea').value.trim();
   renderExportReport(pendingExportData, introText || pendingExportData.defaultIntro);
@@ -4221,6 +4243,7 @@ function confirmExportIntro() {
   modal.classList.remove('open');
   modal.setAttribute('aria-hidden', 'true');
   pendingExportData = null;
+  await waitForExportImages();
   window.print();
 }
 

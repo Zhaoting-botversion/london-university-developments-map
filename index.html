@@ -732,6 +732,62 @@
   .t-label { font-size: 0.7rem; }
   .transport-arrow { color: #6b7394; font-size: 0.7rem; padding: 0 1px; }
   .iw-divider { height: 1px; background: #d4d9eb; margin: 7px 0; }
+  .export-intro-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(17, 24, 39, 0.38);
+  }
+  .export-intro-modal.open {
+    display: flex;
+  }
+  .export-intro-dialog {
+    width: min(620px, calc(100vw - 40px));
+    background: #ffffff;
+    border: 1px solid #d4d9eb;
+    border-radius: 8px;
+    box-shadow: 0 18px 48px rgba(20, 28, 48, 0.22);
+    padding: 18px;
+  }
+  .export-intro-dialog h2 {
+    margin: 0 0 8px;
+    color: #223b63;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .export-intro-dialog p {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+  .export-intro-textarea {
+    width: 100%;
+    min-height: 150px;
+    resize: vertical;
+    border: 1px solid #cfd6ea;
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.88rem;
+    line-height: 1.65;
+    outline: none;
+  }
+  .export-intro-textarea:focus {
+    border-color: #8ba4d8;
+    box-shadow: 0 0 0 3px rgba(79, 111, 157, 0.12);
+  }
+  .export-intro-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+  }
   #export-report { display: none; }
   @media print {
     body > *:not(#export-report) { display: none !important; }
@@ -935,6 +991,17 @@
 </div>
 
 <div id="export-report"></div>
+<div class="export-intro-modal" id="export-intro-modal" aria-hidden="true">
+  <div class="export-intro-dialog" role="dialog" aria-modal="true" aria-labelledby="export-intro-title">
+    <h2 id="export-intro-title">推荐导语</h2>
+    <p>系统已根据客户需求生成导语，销售可在这里调整措辞；确认后再导出 PDF。</p>
+    <textarea class="export-intro-textarea" id="export-intro-textarea"></textarea>
+    <div class="export-intro-actions">
+      <button class="export-btn" type="button" onclick="closeExportIntroEditor()">取消</button>
+      <button class="export-btn" type="button" onclick="confirmExportIntro()">确认并导出PDF</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ============================================================
@@ -3856,6 +3923,138 @@ function exportSelectedPdf() {
   `;
 
   window.print();
+}
+
+let pendingExportData = null;
+
+function formatBudgetForIntro(value) {
+  if (!Number.isFinite(value)) return '综合';
+  const wan = value / 10000;
+  const label = Number.isInteger(wan) ? String(wan) : wan.toFixed(1).replace(/\.0$/, '');
+  return `£${label}万`;
+}
+
+function formatBedForIntro(key) {
+  return {
+    studio: 'Studio',
+    one: '一居室',
+    two: '两居室',
+    three: '三居室',
+    fourPlus: '四居及以上',
+    penthouse: '顶层公寓',
+  }[key] || '';
+}
+
+function formatSchoolForIntro(uniKey, uni) {
+  return {
+    UCL: 'UCL',
+    UCLE: 'UCL East',
+    KCL: 'KCL',
+    IC: '帝国理工',
+    CCA: 'Chelsea Arts',
+    CSM: 'CSM',
+    LCC: 'LCC',
+  }[uniKey] || shortUniName(uni);
+}
+
+function getRequirementIntro(clientName, entries) {
+  const req = clientRequirements || {};
+  const bedLabel = formatBedForIntro(req.bedKey);
+  const budgetLabel = req.budgetMax === null ? '综合' : formatBudgetForIntro(req.budgetMax);
+  const schoolNames = [...new Set(entries.map(({ uni, uniKey }) => formatSchoolForIntro(uniKey, uni)))].join('、') || '目标学校';
+  const bedText = bedLabel ? `${bedLabel}户型` : '合适户型';
+  const budgetText = budgetLabel === '综合' ? '综合预算' : `${budgetLabel}预算`;
+  return `${clientName}您好，根据您的需求：${bedText}、${budgetText}，以及在${schoolNames}通勤方便范围内，我们已为您全面扫描最新楼盘信息，并筛选出以下符合需求的项目，供您参考。`;
+}
+
+function buildExportCards(entries) {
+  return entries.map(({ dev, uni, uniKey }, index) => {
+    attachPriceDetails(dev, uniKey);
+    return `
+      <section class="export-card">
+        <h2>${index + 1}. ${escapeHtml(dev.name)}</h2>
+        <div class="export-grid">
+          <div class="export-label">School</div><div>${escapeHtml(uni.name)}</div>
+          <div class="export-label">Commute</div><div>${escapeHtml(dev.time)} minutes · ${escapeHtml(dev.commute)}</div>
+          <div class="export-label">Area</div><div>${escapeHtml(dev.area)}</div>
+          <div class="export-label">Address</div><div>${escapeHtml(dev.address)}</div>
+          <div class="export-label">Developer</div><div>${escapeHtml(dev.developer || 'N/A')}</div>
+          <div class="export-label">Completion</div><div>${escapeHtml(dev.ready || 'N/A')}</div>
+          <div class="export-label">Beds</div><div>${escapeHtml(dev.beds || 'N/A')}</div>
+        </div>
+        ${exportPriceRows(dev)}
+      </section>
+    `;
+  }).join('');
+}
+
+function renderExportReport(data, introText) {
+  document.getElementById('export-report').innerHTML = `
+    <div class="export-header">
+      <div>
+        <div class="export-title">${escapeHtml(data.reportTitle)}</div>
+        <div class="export-meta">${data.entries.length} 个选项 · 生成时间 ${escapeHtml(data.generatedAt)}</div>
+      </div>
+      <img class="export-logo" src="assets/landma-logo.png" alt="LANDMA GLOBAL">
+    </div>
+    <div class="export-intro">${escapeHtml(introText)}</div>
+    ${data.cards}
+  `;
+}
+
+function openExportIntroEditor(introText) {
+  const modal = document.getElementById('export-intro-modal');
+  const textarea = document.getElementById('export-intro-textarea');
+  textarea.value = introText;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  textarea.focus();
+}
+
+function closeExportIntroEditor() {
+  const modal = document.getElementById('export-intro-modal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  pendingExportData = null;
+}
+
+function confirmExportIntro() {
+  if (!pendingExportData) return;
+  const introText = document.getElementById('export-intro-textarea').value.trim();
+  renderExportReport(pendingExportData, introText || pendingExportData.defaultIntro);
+  const modal = document.getElementById('export-intro-modal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  pendingExportData = null;
+  window.print();
+}
+
+function exportSelectedPdf() {
+  const entries = selectedEntries();
+  if (!entries.length) return;
+  const savedClientName = document.getElementById('client-name-input')?.value?.trim() || '';
+  const clientName = savedClientName || window.prompt('请输入客户称呼，例如：张先生李女士', '');
+  if (clientName === null) return;
+  const cleanClientName = clientName.trim() || '客户';
+  const clientInput = document.getElementById('client-name-input');
+  if (clientInput && !clientInput.value.trim()) clientInput.value = cleanClientName;
+
+  const generatedAt = new Date().toLocaleString('en-GB', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  const defaultIntro = getRequirementIntro(cleanClientName, entries);
+  pendingExportData = {
+    entries,
+    defaultIntro,
+    generatedAt,
+    reportTitle: `${cleanClientName}伦敦配置推荐方案`,
+    cards: buildExportCards(entries),
+  };
+  openExportIntroEditor(defaultIntro);
 }
 
 // ── Price filter chips ──

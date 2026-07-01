@@ -812,31 +812,56 @@
     .export-cover {
       min-height: 245mm;
       page-break-after: always;
-      padding: 34mm 6mm 18mm;
+      position: relative;
+      overflow: hidden;
+      padding: 28mm 8mm 16mm;
       box-sizing: border-box;
-      color: #1A2B4A;
+      color: #ffffff;
+      background: #1A2B4A;
+      border-radius: 0;
+    }
+    .export-cover::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(135deg, rgba(26,43,74,0.98) 0%, rgba(26,43,74,0.84) 42%, rgba(26,43,74,0.42) 100%);
+      z-index: 1;
+    }
+    .export-cover-map {
+      position: absolute;
+      right: -56mm;
+      bottom: 8mm;
+      width: 236mm;
+      height: auto;
+      opacity: 0.58;
+      z-index: 0;
+    }
+    .export-cover-content {
+      position: relative;
+      z-index: 2;
     }
     .export-cover-kicker {
       color: #2BABB3;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
-      margin-bottom: 14px;
+      margin-bottom: 18px;
     }
     .export-cover-title {
       font-family: 'Playfair Display', Georgia, serif;
-      font-size: 30px;
-      line-height: 1.25;
-      color: #1A2B4A;
-      margin-bottom: 12px;
-      max-width: 430px;
+      font-size: 34px;
+      line-height: 1.18;
+      color: #ffffff;
+      margin-bottom: 14px;
+      max-width: 455px;
     }
     .export-cover-subtitle {
-      color: #2BABB3;
-      font-size: 13px;
+      color: #ffffff;
+      font-size: 16px;
       font-weight: 700;
-      margin-bottom: 22px;
+      margin-bottom: 8px;
     }
     .export-cover-tagline {
       color: #C9A84C;
@@ -844,66 +869,71 @@
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      margin-bottom: 18px;
+      margin-bottom: 24px;
     }
     .export-company-box {
       border-left: 5px solid #2BABB3;
       padding: 10px 0 10px 14px;
-      margin: 16px 0 16px;
-      max-width: 520px;
+      margin: 20px 0 16px;
+      max-width: 545px;
       font-size: 11px;
-      line-height: 1.65;
+      line-height: 1.72;
+      color: rgba(255,255,255,0.92);
     }
     .export-cover-heading {
-      color: #1A2B4A;
+      color: #ffffff;
       font-size: 12px;
       font-weight: 800;
-      margin: 16px 0 8px;
+      margin: 18px 0 8px;
+      letter-spacing: 0.04em;
     }
     .export-stats {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
       margin-top: 10px;
+      max-width: 545px;
     }
     .export-stat {
-      border: 1px solid #C9A84C;
+      border: 1px solid rgba(201,168,76,0.82);
       border-radius: 8px;
       padding: 8px;
       min-height: 50px;
+      background: rgba(255,255,255,0.08);
     }
     .export-stat strong {
       display: block;
       color: #2BABB3;
-      font-size: 16px;
+      font-size: 17px;
       margin-bottom: 4px;
     }
     .export-stat span {
-      color: #1A2B4A;
+      color: rgba(255,255,255,0.88);
       font-size: 9px;
       line-height: 1.35;
     }
     .export-market-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
       margin-top: 8px;
+      max-width: 545px;
     }
     .export-market-card {
-      background: #F4F7F8;
-      border: 1px solid #D7E5E8;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(43,171,179,0.72);
       border-radius: 8px;
       padding: 8px;
     }
     .export-market-card strong {
       display: block;
-      color: #1A2B4A;
+      color: #ffffff;
       font-size: 11px;
       margin-bottom: 5px;
     }
     .export-market-card span {
       display: block;
-      color: #666666;
+      color: rgba(255,255,255,0.82);
       font-size: 9px;
       line-height: 1.45;
     }
@@ -912,6 +942,7 @@
       color: #2BABB3;
       font-size: 11px;
       font-weight: 700;
+      max-width: 545px;
     }
     .export-section-title {
       color: #1A2B4A;
@@ -4112,29 +4143,34 @@ function buildExportCards(entries) {
 }
 
 function buildCompanyCover(data) {
+  const mapSrc = new URL('assets/landma-global-map-cover.jpg', window.location.href).href;
   return `
     <section class="export-cover">
-      <div class="export-cover-kicker">LANDMA GLOBAL</div>
-      <div class="export-cover-title">${escapeHtml(data.reportTitle)}</div>
-      <div class="export-cover-subtitle">全球高净值客户跨境不动产配置专家</div>
-      <div class="export-cover-tagline">YOUR TRUSTED PARTNER IN GLOBAL PREMIUM REAL ESTATE</div>
-      <div class="export-company-box">
-        蓝玛国际（LANDMA GLOBAL）是一家注册于新加坡的跨境不动产交易平台，专注于为高净值客户提供全球资产配置服务，主要服务于客户在全球资产配置、投资、自住、教育等全生命周期的多元化房产需求。凭借高覆盖度的房源网络、专业服务团队、创新技术平台以及强大的合作伙伴关系，蓝玛国际为客户提供精选全球优质不动产，以及全生命周期一站式房产投资解决方案。
+      <img class="export-cover-map" src="${mapSrc}" alt="LANDMA global network map">
+      <div class="export-cover-content">
+        <div class="export-cover-kicker">LANDMA GLOBAL</div>
+        <div class="export-cover-title">${escapeHtml(data.reportTitle)}</div>
+        <div class="export-cover-subtitle">全球高净值客户跨境不动产配置专家</div>
+        <div class="export-cover-tagline">YOUR TRUSTED PARTNER IN GLOBAL PREMIUM REAL ESTATE</div>
+        <div class="export-company-box">
+          蓝玛国际（LANDMA GLOBAL）是一家注册于新加坡的跨境不动产交易平台，专注于为高净值客户提供全球资产配置服务，主要服务于客户在全球资产配置、投资、自住、教育等全生命周期的多元化房产需求。凭借高覆盖度的房源网络、专业服务团队、创新技术平台以及强大的合作伙伴关系，蓝玛国际为客户提供精选全球优质不动产，以及全生命周期一站式房产投资解决方案。
+        </div>
+        <div class="export-cover-heading">公司能力</div>
+        <div class="export-stats">
+          <div class="export-stat"><strong>10年</strong><span>专注跨境不动产服务</span></div>
+          <div class="export-stat"><strong>50+</strong><span>专业精英团队</span></div>
+          <div class="export-stat"><strong>21城</strong><span>全球核心城市布局</span></div>
+          <div class="export-stat"><strong>600+</strong><span>累计成交单量</span></div>
+        </div>
+        <div class="export-cover-heading">海外市场成交经验</div>
+        <div class="export-market-grid">
+          <div class="export-market-card"><strong>美国</strong><span>2016年进驻<br>累计成交 246 单<br>成交金额 19.4 亿</span></div>
+          <div class="export-market-card"><strong>英国</strong><span>2019年进驻<br>累计成交 206 单<br>成交金额 14.4 亿</span></div>
+          <div class="export-market-card"><strong>日本</strong><span>2020年进驻<br>累计成交 143 单<br>成交金额 12.1 亿</span></div>
+          <div class="export-market-card"><strong>香港</strong><span>2024年开始筹备<br>亚太财富新支点<br>即将启航</span></div>
+        </div>
+        <div class="export-cover-note">深耕海外 8 年，累计成交额突破 47.7 亿，服务数百位高净值客户跨境置业需求。</div>
       </div>
-      <div class="export-cover-heading">公司能力</div>
-      <div class="export-stats">
-        <div class="export-stat"><strong>10年</strong><span>专注跨境不动产服务</span></div>
-        <div class="export-stat"><strong>50+</strong><span>专业精英团队</span></div>
-        <div class="export-stat"><strong>21城</strong><span>全球核心城市布局</span></div>
-        <div class="export-stat"><strong>600+</strong><span>累计成交单量</span></div>
-      </div>
-      <div class="export-cover-heading">海外市场成交经验</div>
-      <div class="export-market-grid">
-        <div class="export-market-card"><strong>美国 · 2016年进驻</strong><span>累计成交 246 单<br>累计成交金额 19.4 亿</span></div>
-        <div class="export-market-card"><strong>英国 · 2019年进驻</strong><span>累计成交 206 单<br>累计成交金额 14.4 亿</span></div>
-        <div class="export-market-card"><strong>日本 · 2020年进驻</strong><span>累计成交 143 单<br>累计成交金额 12.1 亿</span></div>
-      </div>
-      <div class="export-cover-note">深耕海外 8 年，累计成交额突破 47.7 亿，服务数百位高净值客户跨境置业需求。</div>
     </section>
   `;
 }

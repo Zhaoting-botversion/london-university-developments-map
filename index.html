@@ -842,14 +842,6 @@
       opacity: 0.72;
       z-index: 1;
     }
-    .export-cover-logo {
-      position: absolute;
-      right: 10mm;
-      top: 12mm;
-      width: 128px;
-      height: auto;
-      z-index: 4;
-    }
     .export-cover-content {
       position: relative;
       z-index: 3;
@@ -4156,11 +4148,9 @@ function buildExportCards(entries) {
 }
 
 function buildCompanyCover(data) {
-  const mapSrc = new URL('assets/landma-global-map-cover.jpg', window.location.href).href;
-  const logoSrc = new URL('assets/landma-logo.png', window.location.href).href;
+  const mapSrc = new URL('assets/landma-global-map-cover-clean.png', window.location.href).href;
   return `
     <section class="export-cover">
-      <img class="export-cover-logo" src="${logoSrc}" alt="LANDMA GLOBAL">
       <img class="export-cover-map" src="${mapSrc}" alt="LANDMA global network map">
       <div class="export-cover-content">
         <div class="export-cover-kicker">LANDMA GLOBAL</div>

@@ -789,6 +789,15 @@
     margin-top: 12px;
   }
   #export-report { display: none; }
+  #export-report.preparing-print {
+    display: block;
+    position: fixed;
+    left: -10000px;
+    top: 0;
+    width: 794px;
+    background: #ffffff;
+    pointer-events: none;
+  }
   @media print {
     @page {
       margin: 8mm 12mm 12mm;
@@ -4336,9 +4345,16 @@ function initExportOverviewMap(entries) {
   });
   overviewMap.fitBounds(bounds, 48);
   return new Promise(resolve => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      resolve();
+    };
     google.maps.event.addListenerOnce(overviewMap, 'idle', () => {
-      setTimeout(resolve, 1200);
+      setTimeout(finish, 800);
     });
+    setTimeout(finish, 2200);
   });
 }
 
@@ -4393,12 +4409,15 @@ async function confirmExportIntro() {
   const introText = document.getElementById('export-intro-textarea').value.trim();
   renderExportReport(pendingExportData, introText || pendingExportData.defaultIntro);
   const exportData = pendingExportData;
+  const report = document.getElementById('export-report');
   const modal = document.getElementById('export-intro-modal');
   modal.classList.remove('open');
   modal.setAttribute('aria-hidden', 'true');
   pendingExportData = null;
+  report.classList.add('preparing-print');
   await initExportOverviewMap(exportData.entries);
   await waitForExportImages();
+  report.classList.remove('preparing-print');
   window.print();
 }
 

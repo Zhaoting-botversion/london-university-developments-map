@@ -4071,9 +4071,7 @@ function exportSelectedPdf() {
   const entries = selectedEntries();
   if (!entries.length) return;
   const savedClientName = document.getElementById('client-name-input')?.value?.trim() || '';
-  const clientName = savedClientName || window.prompt('请输入客户称呼，例如：张先生李女士', '');
-  if (clientName === null) return;
-  const cleanClientName = clientName.trim() || '客户';
+  const cleanClientName = savedClientName || '客户';
   const clientInput = document.getElementById('client-name-input');
   if (clientInput && !clientInput.value.trim()) clientInput.value = cleanClientName;
   const reportTitle = `${cleanClientName}伦敦配置推荐方案`;
@@ -4277,9 +4275,7 @@ function exportSelectedPdf() {
   const entries = selectedEntries();
   if (!entries.length) return;
   const savedClientName = document.getElementById('client-name-input')?.value?.trim() || '';
-  const clientName = savedClientName || window.prompt('请输入客户称呼，例如：张先生李女士', '');
-  if (clientName === null) return;
-  const cleanClientName = clientName.trim() || '客户';
+  const cleanClientName = savedClientName || '客户';
   const clientInput = document.getElementById('client-name-input');
   if (clientInput && !clientInput.value.trim()) clientInput.value = cleanClientName;
 

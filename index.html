@@ -458,34 +458,25 @@
     position: relative;
   }
   .client-panel {
-    position: fixed;
-    right: 18px;
-    top: 102px;
-    z-index: 10000;
-    width: 270px;
-    background: rgba(255,255,255,0.96);
-    border: 1px solid #d4d9eb;
-    border-radius: 8px;
-    box-shadow: 0 8px 28px rgba(26,31,54,0.14);
+    background: #ffffff;
+    border-bottom: 1px solid var(--line);
     overflow: hidden;
-  }
-  @media (max-width: 760px) {
-    .client-panel {
-      right: 12px;
-      top: 92px;
-      width: min(270px, calc(100vw - 24px));
-    }
   }
   .client-panel-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 9px 12px;
+    padding: 12px 18px;
     cursor: pointer;
     user-select: none;
-    color: #223b63;
-    font-weight: 600;
+    color: var(--muted);
+    font-weight: 700;
     font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .client-panel-header:hover {
+    background: #f5f7fc;
   }
   .client-panel-toggle {
     color: var(--muted);
@@ -497,7 +488,7 @@
   .client-panel-body {
     display: grid;
     gap: 8px;
-    padding: 0 12px 12px;
+    padding: 0 18px 14px;
   }
   .client-panel.collapsed .client-panel-body {
     display: none;
@@ -849,6 +840,41 @@
       </div>
     </div>
     <div class="sidebar-scroll">
+    <div class="client-panel" id="client-panel">
+      <div class="client-panel-header" onclick="toggleClientPanel()">
+        <span>客户需求</span>
+        <span class="client-panel-toggle">▼</span>
+      </div>
+      <div class="client-panel-body">
+        <div class="client-field">
+          <label>客户称呼</label>
+          <input class="client-input" id="client-name-input" placeholder="例如：张先生李女士">
+        </div>
+        <div class="client-field">
+          <label>预算上限</label>
+          <input class="client-input" id="client-budget-input" placeholder="例如：1000000 或 1m" oninput="applyClientRequirements()">
+        </div>
+        <div class="client-field">
+          <label>户型</label>
+          <select class="client-select" id="client-bed-select" onchange="applyClientRequirements()">
+            <option value="">不限</option>
+            <option value="studio">Studio</option>
+            <option value="one">1 Bed</option>
+            <option value="two">2 Bed</option>
+            <option value="three">3 Bed</option>
+            <option value="fourPlus">4+ Bed</option>
+            <option value="penthouse">Penthouse</option>
+          </select>
+        </div>
+        <div class="client-field">
+          <label>区域</label>
+          <input class="client-input" id="client-area-input" placeholder="例如：Fitzrovia" oninput="applyClientRequirements()">
+        </div>
+        <div class="client-actions">
+          <button class="export-btn" onclick="resetClientRequirements()">清空需求</button>
+        </div>
+      </div>
+    </div>
     <div class="filter-panel" id="price-filter-panel">
       <div class="filter-panel-header" onclick="toggleFilterPanel('price-filter-panel')">
         <div class="filter-label">💷 Filter by Price</div>
@@ -895,41 +921,6 @@
   </div>
   <div id="map">
     <div id="map-placeholder" style="display:none"></div>
-    <div class="client-panel" id="client-panel">
-      <div class="client-panel-header" onclick="toggleClientPanel()">
-        <span>客户需求</span>
-        <span class="client-panel-toggle">▼</span>
-      </div>
-      <div class="client-panel-body">
-        <div class="client-field">
-          <label>客户称呼</label>
-          <input class="client-input" id="client-name-input" placeholder="例如：张先生李女士">
-        </div>
-        <div class="client-field">
-          <label>预算上限</label>
-          <input class="client-input" id="client-budget-input" placeholder="例如：1000000 或 1m" oninput="applyClientRequirements()">
-        </div>
-        <div class="client-field">
-          <label>户型</label>
-          <select class="client-select" id="client-bed-select" onchange="applyClientRequirements()">
-            <option value="">不限</option>
-            <option value="studio">Studio</option>
-            <option value="one">1 Bed</option>
-            <option value="two">2 Bed</option>
-            <option value="three">3 Bed</option>
-            <option value="fourPlus">4+ Bed</option>
-            <option value="penthouse">Penthouse</option>
-          </select>
-        </div>
-        <div class="client-field">
-          <label>区域</label>
-          <input class="client-input" id="client-area-input" placeholder="例如：Fitzrovia" oninput="applyClientRequirements()">
-        </div>
-        <div class="client-actions">
-          <button class="export-btn" onclick="resetClientRequirements()">清空需求</button>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 

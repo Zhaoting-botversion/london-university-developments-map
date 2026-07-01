@@ -835,14 +835,14 @@
     }
     .export-cover-map {
       position: absolute;
-      right: -42mm;
-      bottom: 20mm;
-      width: 214mm;
+      right: -30mm;
+      bottom: 34mm;
+      width: 205mm;
       height: auto;
-      opacity: 0.78;
+      opacity: 0.68;
       z-index: 1;
-      -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.16) 18%, #000 42%, #000 100%);
-      mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.16) 18%, #000 42%, #000 100%);
+      -webkit-mask-image: radial-gradient(ellipse at 68% 42%, #000 0%, #000 48%, rgba(0,0,0,0.38) 62%, transparent 78%);
+      mask-image: radial-gradient(ellipse at 68% 42%, #000 0%, #000 48%, rgba(0,0,0,0.38) 62%, transparent 78%);
     }
     .export-cover-content {
       position: relative;
@@ -3818,6 +3818,22 @@ function bedroomChipHtml(dev) {
     .join('') + '</div>';
 }
 
+function entryUniPillsHtml(entry) {
+  return (entry.uniEntries || [entry])
+    .map(({ uni }) => `<span class="uni-mini-pill" style="border-color:${uni.color};color:${uni.bgColor || uni.color}">${shortUniName(uni)}</span>`)
+    .join('');
+}
+
+function exportSchoolSummary(entry) {
+  return (entry.uniEntries || [entry]).map(({ uni }) => shortUniName(uni)).join(' / ');
+}
+
+function exportCommuteSummary(entry) {
+  return (entry.uniEntries || [entry])
+    .map(({ uni, dev }) => `${escapeHtml(shortUniName(uni))}: ${escapeHtml(dev.time)} minutes · ${escapeHtml(dev.commute)}`)
+    .join('<br>');
+}
+
 function priceMatrixHtml(dev) {
   const details = dev.priceDetails || buildFallbackPriceDetails(dev);
   const rows = BED_CATEGORIES
@@ -3908,11 +3924,38 @@ function shortUniName(uni) {
   return uni.name.split('(')[0].replace('& LSE', '').trim();
 }
 
+function devMergeKey(dev) {
+  return `${looseDevKey(dev.name)}|${String(dev.address || '').trim().toLowerCase()}`;
+}
+
 function getSelectedEntries() {
-  return getSelectedUniKeys()
+  const rawEntries = getSelectedUniKeys()
     .flatMap(uniKey => {
       const uni = UNIVERSITIES[uniKey];
       return uni.developments.map(dev => ({ dev, uni, uniKey }));
+    });
+  const grouped = new Map();
+  rawEntries.forEach(entry => {
+    const key = devMergeKey(entry.dev);
+    const existing = grouped.get(key);
+    if (!existing) {
+      grouped.set(key, {
+        ...entry,
+        uniEntries: [entry],
+      });
+      return;
+    }
+    existing.uniEntries.push(entry);
+    if (entry.dev.time < existing.dev.time) {
+      existing.dev = entry.dev;
+      existing.uni = entry.uni;
+      existing.uniKey = entry.uniKey;
+    }
+  });
+  return [...grouped.values()]
+    .map(entry => {
+      entry.uniEntries.sort((a, b) => a.dev.time - b.dev.time || shortUniName(a.uni).localeCompare(shortUniName(b.uni)));
+      return entry;
     })
     .sort((a, b) => a.dev.time - b.dev.time || a.dev.name.localeCompare(b.dev.name));
 }
@@ -3946,7 +3989,7 @@ function matchesClientRequirements(dev) {
 }
 
 function entryKey(entry) {
-  return `${entry.uniKey}|${entry.dev.name}|${entry.dev.address || ''}`;
+  return devMergeKey(entry.dev);
 }
 
 function selectedEntries() {
@@ -4122,21 +4165,22 @@ function getRequirementIntro(clientName, entries) {
   const req = clientRequirements || {};
   const bedLabel = formatBedForIntro(req.bedKey);
   const budgetLabel = req.budgetMax === null ? '综合' : formatBudgetForIntro(req.budgetMax);
-  const schoolNames = [...new Set(entries.map(({ uni, uniKey }) => formatSchoolForIntro(uniKey, uni)))].join('、') || '目标学校';
+  const schoolNames = [...new Set(entries.flatMap(entry => (entry.uniEntries || [entry]).map(({ uni, uniKey }) => formatSchoolForIntro(uniKey, uni))))].join('、') || '目标学校';
   const bedText = bedLabel ? `${bedLabel}户型` : '合适户型';
   const budgetText = budgetLabel === '综合' ? '综合预算' : `${budgetLabel}预算`;
   return `${clientName}您好，根据您的需求：${bedText}、${budgetText}，以及在${schoolNames}通勤方便范围内，我们已为您全面扫描最新楼盘信息，并筛选出以下符合需求的项目，供您参考。`;
 }
 
 function buildExportCards(entries) {
-  return entries.map(({ dev, uni, uniKey }, index) => {
+  return entries.map((entry, index) => {
+    const { dev, uniKey } = entry;
     attachPriceDetails(dev, uniKey);
     return `
       <section class="export-card">
         <h2>${index + 1}. ${escapeHtml(dev.name)}</h2>
         <div class="export-grid">
-          <div class="export-label">School</div><div>${escapeHtml(uni.name)}</div>
-          <div class="export-label">Commute</div><div>${escapeHtml(dev.time)} minutes · ${escapeHtml(dev.commute)}</div>
+          <div class="export-label">School</div><div>${escapeHtml(exportSchoolSummary(entry))}</div>
+          <div class="export-label">Commute</div><div>${exportCommuteSummary(entry)}</div>
           <div class="export-label">Area</div><div>${escapeHtml(dev.area)}</div>
           <div class="export-label">Address</div><div>${escapeHtml(dev.address)}</div>
           <div class="export-label">Developer</div><div>${escapeHtml(dev.developer || 'N/A')}</div>
@@ -4522,7 +4566,7 @@ function renderSidebar() {
   list.innerHTML = '';
 
   currentEntries.forEach(({ dev, uni, uniKey }, i) => {
-    const entry = { dev, uni, uniKey };
+    const entry = currentEntries[i];
     const key = entryKey(entry);
     const isSelected = selectedDevelopments.has(key);
     const div = document.createElement('div');
@@ -4536,7 +4580,7 @@ function renderSidebar() {
           <div class="dev-item-name">${dev.name}</div>
           <div class="dev-item-meta">
             <span class="time-pill">⏱ ${dev.time} min</span>
-            <span class="uni-mini-pill" style="border-color:${uni.color};color:${uni.bgColor || uni.color}">${shortUniName(uni)}</span>
+            ${entryUniPillsHtml(entry)}
             <span>${dev.area}</span>
           </div>
         </div>

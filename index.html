@@ -458,16 +458,23 @@
     position: relative;
   }
   .client-panel {
-    position: absolute;
-    right: 14px;
-    top: 14px;
-    z-index: 3;
+    position: fixed;
+    right: 18px;
+    top: 102px;
+    z-index: 10000;
     width: 270px;
     background: rgba(255,255,255,0.96);
     border: 1px solid #d4d9eb;
     border-radius: 8px;
     box-shadow: 0 8px 28px rgba(26,31,54,0.14);
     overflow: hidden;
+  }
+  @media (max-width: 760px) {
+    .client-panel {
+      right: 12px;
+      top: 92px;
+      width: min(270px, calc(100vw - 24px));
+    }
   }
   .client-panel-header {
     display: flex;

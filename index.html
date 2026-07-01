@@ -139,6 +139,36 @@
     margin-left: 8px;
     vertical-align: middle;
   }
+  .export-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .export-btn {
+    border: 1px solid rgba(63,95,146,0.28);
+    background: #f3f6fb;
+    color: #223b63;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.72rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .export-btn:hover:not(:disabled) {
+    background: #e8eef8;
+    border-color: rgba(63,95,146,0.48);
+  }
+  .export-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .selection-count {
+    color: var(--muted);
+    font-size: 0.7rem;
+  }
 
   .dev-list {
     overflow: visible;
@@ -266,6 +296,41 @@
   }
   .dev-item:hover { background: #eef1f9; }
   .dev-item.active { background: #e8ecf7; }
+  .dev-item.selected {
+    background: #eef4ff;
+    box-shadow: inset 0 0 0 1px rgba(63,95,146,0.16);
+  }
+  .dev-item-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .dev-item-main { flex: 1; min-width: 0; }
+  .select-dev-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid #c5cce1;
+    background: #fff;
+    color: transparent;
+    flex-shrink: 0;
+    cursor: pointer;
+    font-size: 0.74rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .select-dev-btn:hover {
+    border-color: #3f5f92;
+    background: #f3f6fb;
+  }
+  .select-dev-btn.selected {
+    color: #fff;
+    background: #3f5f92;
+    border-color: #3f5f92;
+  }
   .dev-item-name {
     font-size: 0.83rem;
     font-weight: 500;
@@ -593,6 +658,67 @@
   .t-label { font-size: 0.7rem; }
   .transport-arrow { color: #6b7394; font-size: 0.7rem; padding: 0 1px; }
   .iw-divider { height: 1px; background: #d4d9eb; margin: 7px 0; }
+  #export-report { display: none; }
+  @media print {
+    body > *:not(#export-report) { display: none !important; }
+    #export-report {
+      display: block !important;
+      padding: 24px;
+      font-family: 'DM Sans', Arial, sans-serif;
+      color: #1a1f36;
+      background: #fff;
+    }
+    .export-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      margin-bottom: 6px;
+      color: #223b63;
+    }
+    .export-meta {
+      color: #6b7394;
+      font-size: 11px;
+      margin-bottom: 18px;
+    }
+    .export-card {
+      break-inside: avoid;
+      border: 1px solid #d4d9eb;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .export-card h2 {
+      font-size: 16px;
+      margin: 0 0 6px;
+      color: #1a1f36;
+    }
+    .export-grid {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 4px 12px;
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+    .export-label {
+      color: #6b7394;
+      font-weight: 600;
+    }
+    .export-price-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin-top: 6px;
+    }
+    .export-price-table th,
+    .export-price-table td {
+      border: 1px solid #d4d9eb;
+      padding: 5px 7px;
+      text-align: left;
+    }
+    .export-price-table th {
+      background: #f5f7fc;
+      color: #223b63;
+    }
+  }
 </style>
 </head>
 <body>
@@ -618,6 +744,11 @@
     <div class="sidebar-header">
       <span class="sidebar-title" id="sidebar-title">UCL Bloomsbury</span>
       <span class="count-badge" id="count-badge">32 developments</span>
+      <div class="export-actions">
+        <button class="export-btn" id="export-pdf-btn" onclick="exportSelectedPdf()" disabled>Export PDF</button>
+        <button class="export-btn" id="clear-selection-btn" onclick="clearSelectedDevelopments()" disabled>Clear selected</button>
+        <span class="selection-count" id="selection-count">0 selected</span>
+      </div>
     </div>
     <div class="sidebar-scroll">
     <div class="filter-panel" id="price-filter-panel">
@@ -657,6 +788,8 @@
     <div id="map-placeholder" style="display:none"></div>
   </div>
 </div>
+
+<div id="export-report"></div>
 
 <script>
 // ============================================================
@@ -3140,6 +3273,7 @@ const UNIVERSITIES_STUB = {
 let UNIVERSITIES = UNIVERSITIES_STUB; // Data loaded from stub (keep in sync with Google Sheet manually)
 let map, activeUni = "UCL", activeUnis = new Set(["UCL"]), markers = [], uniMarkers = [], infoWindow = null;
 let currentEntries = [];
+let selectedDevelopments = new Set();
 let mapLoaded = false;
 let dataLoaded = true; // data is immediately available from stub
 
@@ -3403,6 +3537,109 @@ function getSelectedEntries() {
     .sort((a, b) => a.dev.time - b.dev.time || a.dev.name.localeCompare(b.dev.name));
 }
 
+function entryKey(entry) {
+  return `${entry.uniKey}|${entry.dev.name}|${entry.dev.address || ''}`;
+}
+
+function selectedEntries() {
+  return currentEntries.filter(entry => selectedDevelopments.has(entryKey(entry)));
+}
+
+function pruneSelectedDevelopments() {
+  const allowed = new Set(currentEntries.map(entryKey));
+  selectedDevelopments = new Set([...selectedDevelopments].filter(key => allowed.has(key)));
+}
+
+function updateSelectionControls() {
+  const count = selectedDevelopments.size;
+  const label = document.getElementById('selection-count');
+  const exportBtn = document.getElementById('export-pdf-btn');
+  const clearBtn = document.getElementById('clear-selection-btn');
+  if (label) label.textContent = count === 1 ? '1 selected' : `${count} selected`;
+  if (exportBtn) exportBtn.disabled = count === 0;
+  if (clearBtn) clearBtn.disabled = count === 0;
+}
+
+function toggleSelectedDevelopment(key) {
+  selectedDevelopments.has(key) ? selectedDevelopments.delete(key) : selectedDevelopments.add(key);
+  renderSidebar();
+  if (mapLoaded) applyFilter();
+}
+
+function clearSelectedDevelopments() {
+  selectedDevelopments.clear();
+  renderSidebar();
+  if (mapLoaded) applyFilter();
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function exportPriceRows(dev) {
+  const details = dev.priceDetails || buildFallbackPriceDetails(dev);
+  const rows = BED_CATEGORIES
+    .filter(cat => details.prices?.[cat.key])
+    .map(cat => `
+      <tr>
+        <td>${escapeHtml(cat.label)}</td>
+        <td>${escapeHtml(normalizePriceDisplay(details.prices[cat.key]))}</td>
+      </tr>
+    `)
+    .join('');
+  if (!rows) return '<div class="export-meta">Price details are not available yet.</div>';
+  return `<table class="export-price-table"><thead><tr><th>Bedroom</th><th>Price</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function exportSelectedPdf() {
+  const entries = selectedEntries();
+  if (!entries.length) return;
+
+  const generatedAt = new Date().toLocaleString('en-GB', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  const cards = entries.map(({ dev, uni, uniKey }) => {
+    attachPriceDetails(dev, uniKey);
+    const details = dev.priceDetails || {};
+    return `
+      <section class="export-card">
+        <h2>${escapeHtml(dev.name)}</h2>
+        <div class="export-grid">
+          <div class="export-label">School</div><div>${escapeHtml(uni.name)}</div>
+          <div class="export-label">Commute</div><div>${escapeHtml(dev.time)} minutes · ${escapeHtml(dev.commute)}</div>
+          <div class="export-label">Area</div><div>${escapeHtml(dev.area)}</div>
+          <div class="export-label">Address</div><div>${escapeHtml(dev.address)}</div>
+          <div class="export-label">Developer</div><div>${escapeHtml(dev.developer || 'N/A')}</div>
+          <div class="export-label">Completion</div><div>${escapeHtml(dev.ready || 'N/A')}</div>
+          <div class="export-label">Beds</div><div>${escapeHtml(dev.beds || 'N/A')}</div>
+        </div>
+        ${exportPriceRows(dev)}
+        ${details.reservation ? `<div class="export-meta"><strong>Reservation:</strong> ${escapeHtml(details.reservation)}</div>` : ''}
+        ${details.payment ? `<div class="export-meta"><strong>Payment:</strong> ${escapeHtml(details.payment)}</div>` : ''}
+        ${details.source ? `<div class="export-meta"><strong>Source:</strong> ${escapeHtml(details.source)}</div>` : ''}
+      </section>
+    `;
+  }).join('');
+
+  document.getElementById('export-report').innerHTML = `
+    <div class="export-title">London University Developments Shortlist</div>
+    <div class="export-meta">${entries.length} selected developments · Generated ${escapeHtml(generatedAt)}</div>
+    ${cards}
+  `;
+
+  window.print();
+}
+
 // ── Price filter chips ──
 function renderFilterChips() {
   const grid = document.getElementById('filter-grid');
@@ -3557,6 +3794,7 @@ function applyFilter() {
   const anyFilter = activeBands.size > 0 || activeBeds.size > 0 || activeStatuses.size > 0;
   document.getElementById('count-badge').textContent =
     anyFilter ? visibleCount + ' shown' : currentEntries.length + ' developments';
+  updateSelectionControls();
 }
 
 // ============================================================
@@ -3572,6 +3810,7 @@ function renderSidebar() {
     selectedNames.length === 1 ? selectedNames[0] : `${selectedNames.length} Schools Selected`;
 
   currentEntries = getSelectedEntries();
+  pruneSelectedDevelopments();
   document.getElementById('count-badge').textContent = currentEntries.length + ' developments';
 
   document.getElementById('filter-reset').style.display = activeBands.size > 0 ? 'block' : 'none';
@@ -3585,22 +3824,34 @@ function renderSidebar() {
   list.innerHTML = '';
 
   currentEntries.forEach(({ dev, uni, uniKey }, i) => {
+    const entry = { dev, uni, uniKey };
+    const key = entryKey(entry);
+    const isSelected = selectedDevelopments.has(key);
     const div = document.createElement('div');
-    div.className = 'dev-item';
+    div.className = 'dev-item' + (isSelected ? ' selected' : '');
     div.style.borderLeftColor = uni.color;
     attachPriceDetails(dev, uniKey);
     div.innerHTML = `
-      <div class="dev-item-name">${dev.name}</div>
-      <div class="dev-item-meta">
-        <span class="time-pill">⏱ ${dev.time} min</span>
-        <span class="uni-mini-pill" style="border-color:${uni.color};color:${uni.bgColor || uni.color}">${shortUniName(uni)}</span>
-        <span>${dev.area}</span>
+      <div class="dev-item-top">
+        <button class="select-dev-btn ${isSelected ? 'selected' : ''}" title="Select for PDF">✓</button>
+        <div class="dev-item-main">
+          <div class="dev-item-name">${dev.name}</div>
+          <div class="dev-item-meta">
+            <span class="time-pill">⏱ ${dev.time} min</span>
+            <span class="uni-mini-pill" style="border-color:${uni.color};color:${uni.bgColor || uni.color}">${shortUniName(uni)}</span>
+            <span>${dev.area}</span>
+          </div>
+        </div>
       </div>
       <div class="dev-item-price-line">
         <span class="price-tag">${priceSummary(dev)}</span>
       </div>
       ${bedroomChipHtml(dev)}
     `;
+    div.querySelector('.select-dev-btn').addEventListener('click', (event) => {
+      event.stopPropagation();
+      toggleSelectedDevelopment(key);
+    });
     div.addEventListener('click', () => {
       if (!mapLoaded) return;
       const marker = markers[i];
@@ -3615,6 +3866,7 @@ function renderSidebar() {
     list.appendChild(div);
   });
   applyFilter();
+  updateSelectionControls();
 }
 
 // ============================================================

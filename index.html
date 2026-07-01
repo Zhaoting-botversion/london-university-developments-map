@@ -790,19 +790,97 @@
   }
   #export-report { display: none; }
   @media print {
+    @page {
+      margin: 12mm;
+    }
     body > *:not(#export-report) { display: none !important; }
     #export-report {
       display: block !important;
-      padding: 24px;
+      padding: 20px 18px 24px;
       font-family: 'DM Sans', Arial, sans-serif;
-      color: #1a1f36;
+      color: #1A2B4A;
       background: #fff;
+    }
+    .print-page-logo {
+      position: fixed;
+      top: 10mm;
+      right: 12mm;
+      width: 132px;
+      height: auto;
+      z-index: 1000;
+    }
+    .export-cover {
+      min-height: 245mm;
+      page-break-after: always;
+      padding: 34mm 6mm 18mm;
+      box-sizing: border-box;
+      color: #1A2B4A;
+    }
+    .export-cover-kicker {
+      color: #2BABB3;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .export-cover-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 30px;
+      line-height: 1.25;
+      color: #1A2B4A;
+      margin-bottom: 12px;
+      max-width: 430px;
+    }
+    .export-cover-subtitle {
+      color: #2BABB3;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 22px;
+    }
+    .export-company-box {
+      border-left: 5px solid #2BABB3;
+      padding: 12px 0 12px 16px;
+      margin: 20px 0 20px;
+      max-width: 500px;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+    .export-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .export-stat {
+      border: 1px solid #C9A84C;
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 58px;
+    }
+    .export-stat strong {
+      display: block;
+      color: #2BABB3;
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+    .export-stat span {
+      color: #1A2B4A;
+      font-size: 10px;
+      line-height: 1.35;
+    }
+    .export-section-title {
+      color: #1A2B4A;
+      font-size: 18px;
+      font-weight: 800;
+      margin: 0 0 8px;
+      padding-right: 150px;
     }
     .export-title {
       font-family: 'Playfair Display', Georgia, serif;
       font-size: 22px;
       margin-bottom: 6px;
-      color: #223b63;
+      color: #1A2B4A;
     }
     .export-header {
       display: flex;
@@ -810,7 +888,7 @@
       justify-content: space-between;
       gap: 24px;
       margin-bottom: 18px;
-      border-bottom: 1px solid #d4d9eb;
+      border-bottom: 2px solid #2BABB3;
       padding-bottom: 12px;
     }
     .export-logo {
@@ -820,23 +898,24 @@
       flex-shrink: 0;
     }
     .export-meta {
-      color: #6b7394;
+      color: #666666;
       font-size: 11px;
       margin-bottom: 18px;
     }
     .export-intro {
-      color: #1f2a44;
+      color: #1A2B4A;
       font-size: 12px;
       line-height: 1.7;
       margin: 0 0 16px;
       padding: 12px 14px;
-      background: #f7f9fd;
-      border: 1px solid #dfe5f2;
+      background: #F4F7F8;
+      border: 1px solid #D7E5E8;
+      border-left: 4px solid #2BABB3;
       border-radius: 8px;
     }
     .export-card {
       break-inside: avoid;
-      border: 1px solid #d4d9eb;
+      border: 1px solid #D7E5E8;
       border-radius: 8px;
       padding: 12px 14px;
       margin-bottom: 12px;
@@ -844,7 +923,7 @@
     .export-card h2 {
       font-size: 16px;
       margin: 0 0 6px;
-      color: #1a1f36;
+      color: #1A2B4A;
     }
     .export-grid {
       display: grid;
@@ -854,7 +933,7 @@
       margin-bottom: 8px;
     }
     .export-label {
-      color: #6b7394;
+      color: #666666;
       font-weight: 600;
     }
     .export-price-table {
@@ -865,13 +944,13 @@
     }
     .export-price-table th,
     .export-price-table td {
-      border: 1px solid #d4d9eb;
+      border: 1px solid #D7E5E8;
       padding: 5px 7px;
       text-align: left;
     }
     .export-price-table th {
-      background: #f5f7fc;
-      color: #223b63;
+      background: #F4F7F8;
+      color: #1A2B4A;
     }
   }
 </style>
@@ -3988,14 +4067,36 @@ function buildExportCards(entries) {
   }).join('');
 }
 
+function buildCompanyCover(data) {
+  return `
+    <section class="export-cover">
+      <div class="export-cover-kicker">LANDMA GLOBAL · PREMIUM REAL ESTATE</div>
+      <div class="export-cover-title">${escapeHtml(data.reportTitle)}</div>
+      <div class="export-cover-subtitle">全球高净值客户跨境不动产配置专家</div>
+      <div class="export-company-box">
+        蓝玛国际（LANDMA GLOBAL）是一家注册于新加坡的跨境不动产交易平台，专注于为高净值客户提供全球资产配置服务。我们围绕客户在投资、自住、教育与家庭规划中的多元化房产需求，依托全球房源网络、专业服务团队、技术平台和合作伙伴资源，为客户提供精选优质不动产及全生命周期一站式置业解决方案。
+      </div>
+      <div class="export-stats">
+        <div class="export-stat"><strong>10年</strong><span>深耕跨境不动产服务</span></div>
+        <div class="export-stat"><strong>50+</strong><span>专业精英团队</span></div>
+        <div class="export-stat"><strong>21城</strong><span>全球核心城市布局</span></div>
+        <div class="export-stat"><strong>600+</strong><span>累计跨境置业成交</span></div>
+      </div>
+    </section>
+  `;
+}
+
 function renderExportReport(data, introText) {
+  const logoSrc = new URL('assets/landma-logo.png', window.location.href).href;
   document.getElementById('export-report').innerHTML = `
+    <img class="print-page-logo" src="${logoSrc}" alt="LANDMA GLOBAL">
+    ${buildCompanyCover(data)}
     <div class="export-header">
       <div>
+        <div class="export-section-title">楼盘推荐</div>
         <div class="export-title">${escapeHtml(data.reportTitle)}</div>
         <div class="export-meta">${data.entries.length} 个选项 · 生成时间 ${escapeHtml(data.generatedAt)}</div>
       </div>
-      <img class="export-logo" src="assets/landma-logo.png" alt="LANDMA GLOBAL">
     </div>
     <div class="export-intro">${escapeHtml(introText)}</div>
     ${data.cards}

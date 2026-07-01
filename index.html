@@ -267,6 +267,28 @@
     text-align: center;
   }
   .filter-chip.active .filter-chip-count { color: var(--gold); background: rgba(63,95,146,0.12); }
+  .filter-search-input,
+  .client-input,
+  .client-select {
+    width: 100%;
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text);
+    border-radius: 6px;
+    padding: 7px 9px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.74rem;
+    outline: none;
+  }
+  .filter-search-input:focus,
+  .client-input:focus,
+  .client-select:focus {
+    border-color: #3f5f92;
+    box-shadow: 0 0 0 2px rgba(63,95,146,0.10);
+  }
+  .filter-search-input {
+    margin-bottom: 6px;
+  }
   .filter-reset {
     margin-top: 7px;
     font-size: 0.7rem;
@@ -434,6 +456,60 @@
   #map {
     flex: 1;
     position: relative;
+  }
+  .client-panel {
+    position: absolute;
+    right: 14px;
+    top: 14px;
+    z-index: 3;
+    width: 270px;
+    background: rgba(255,255,255,0.96);
+    border: 1px solid #d4d9eb;
+    border-radius: 8px;
+    box-shadow: 0 8px 28px rgba(26,31,54,0.14);
+    overflow: hidden;
+  }
+  .client-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    cursor: pointer;
+    user-select: none;
+    color: #223b63;
+    font-weight: 600;
+    font-size: 0.78rem;
+  }
+  .client-panel-toggle {
+    color: var(--muted);
+    transition: transform 0.2s;
+  }
+  .client-panel.collapsed .client-panel-toggle {
+    transform: rotate(-90deg);
+  }
+  .client-panel-body {
+    display: grid;
+    gap: 8px;
+    padding: 0 12px 12px;
+  }
+  .client-panel.collapsed .client-panel-body {
+    display: none;
+  }
+  .client-field label {
+    display: block;
+    color: var(--muted);
+    font-size: 0.66rem;
+    font-weight: 600;
+    margin-bottom: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .client-actions {
+    display: flex;
+    gap: 7px;
+  }
+  .client-actions .export-btn {
+    flex: 1;
   }
   #map-placeholder {
     position: absolute;
@@ -786,6 +862,17 @@
         <div class="filter-reset" id="bed-reset" onclick="clearBedFilters()" style="display:none">✕ Clear</div>
       </div>
     </div>
+    <div class="filter-panel" id="area-filter-panel">
+      <div class="filter-panel-header" onclick="toggleFilterPanel('area-filter-panel')">
+        <div class="filter-label">📍 Filter by Area</div>
+        <span class="filter-toggle-icon">▼</span>
+      </div>
+      <div class="filter-panel-body">
+        <input class="filter-search-input" id="area-search-input" placeholder="输入区域，如 Fitzrovia" oninput="setAreaSearch(this.value)">
+        <div class="filter-grid" id="area-grid"></div>
+        <div class="filter-reset" id="area-reset" onclick="clearAreaFilters()" style="display:none">✕ Clear</div>
+      </div>
+    </div>
     <div class="filter-panel" id="status-filter-panel">
       <div class="filter-panel-header" onclick="toggleFilterPanel('status-filter-panel')">
         <div class="filter-label">🏗 Filter by Status</div>
@@ -801,6 +888,41 @@
   </div>
   <div id="map">
     <div id="map-placeholder" style="display:none"></div>
+    <div class="client-panel" id="client-panel">
+      <div class="client-panel-header" onclick="toggleClientPanel()">
+        <span>客户需求</span>
+        <span class="client-panel-toggle">▼</span>
+      </div>
+      <div class="client-panel-body">
+        <div class="client-field">
+          <label>客户称呼</label>
+          <input class="client-input" id="client-name-input" placeholder="例如：张先生李女士">
+        </div>
+        <div class="client-field">
+          <label>预算上限</label>
+          <input class="client-input" id="client-budget-input" placeholder="例如：1000000 或 1m" oninput="applyClientRequirements()">
+        </div>
+        <div class="client-field">
+          <label>户型</label>
+          <select class="client-select" id="client-bed-select" onchange="applyClientRequirements()">
+            <option value="">不限</option>
+            <option value="studio">Studio</option>
+            <option value="one">1 Bed</option>
+            <option value="two">2 Bed</option>
+            <option value="three">3 Bed</option>
+            <option value="fourPlus">4+ Bed</option>
+            <option value="penthouse">Penthouse</option>
+          </select>
+        </div>
+        <div class="client-field">
+          <label>区域</label>
+          <input class="client-input" id="client-area-input" placeholder="例如：Fitzrovia" oninput="applyClientRequirements()">
+        </div>
+        <div class="client-actions">
+          <button class="export-btn" onclick="resetClientRequirements()">清空需求</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -3533,7 +3655,14 @@ function getBand(priceStr) {
 
 let activeBands = new Set();
 let activeBeds = new Set();
+let activeAreas = new Set();
 let activeStatuses = new Set();
+let areaSearchQuery = '';
+let clientRequirements = {
+  budgetMax: null,
+  bedKey: '',
+  areaQuery: '',
+};
 
 function getSelectedUniKeys() {
   return [...activeUnis].filter(key => UNIVERSITIES[key]);
@@ -3550,6 +3679,34 @@ function getSelectedEntries() {
       return uni.developments.map(dev => ({ dev, uni, uniKey }));
     })
     .sort((a, b) => a.dev.time - b.dev.time || a.dev.name.localeCompare(b.dev.name));
+}
+
+function areaKey(area) {
+  return String(area || '').trim();
+}
+
+function parseBudgetInput(value) {
+  const text = String(value || '').trim().toLowerCase().replace(/[£,\s]/g, '');
+  if (!text) return null;
+  const match = text.match(/^([0-9]+(?:\.[0-9]+)?)(k|m|million)?$/);
+  if (!match) return null;
+  const amount = parseFloat(match[1]);
+  if (!Number.isFinite(amount)) return null;
+  if (match[2] === 'm' || match[2] === 'million') return amount * 1000000;
+  if (match[2] === 'k') return amount * 1000;
+  return amount;
+}
+
+function matchesClientRequirements(dev) {
+  const req = clientRequirements;
+  if (req.areaQuery && !areaKey(dev.area).toLowerCase().includes(req.areaQuery.toLowerCase())) return false;
+  if (req.bedKey && !getAvailableBedKeys(dev).includes(req.bedKey)) return false;
+  if (req.budgetMax !== null) {
+    const bedKeys = req.bedKey ? [req.bedKey] : [];
+    const values = getRelevantPriceValues(dev, bedKeys);
+    if (!values.length || !values.some(value => value <= req.budgetMax)) return false;
+  }
+  return true;
 }
 
 function entryKey(entry) {
@@ -3614,9 +3771,12 @@ function exportPriceRows(dev) {
 function exportSelectedPdf() {
   const entries = selectedEntries();
   if (!entries.length) return;
-  const clientName = window.prompt('请输入客户称呼，例如：张先生李女士', '');
+  const savedClientName = document.getElementById('client-name-input')?.value?.trim() || '';
+  const clientName = savedClientName || window.prompt('请输入客户称呼，例如：张先生李女士', '');
   if (clientName === null) return;
   const cleanClientName = clientName.trim() || '客户';
+  const clientInput = document.getElementById('client-name-input');
+  if (clientInput && !clientInput.value.trim()) clientInput.value = cleanClientName;
   const reportTitle = `${cleanClientName}伦敦配置推荐方案`;
 
   const generatedAt = new Date().toLocaleString('en-GB', {
@@ -3627,11 +3787,11 @@ function exportSelectedPdf() {
     minute: '2-digit',
   });
 
-  const cards = entries.map(({ dev, uni, uniKey }) => {
+  const cards = entries.map(({ dev, uni, uniKey }, index) => {
     attachPriceDetails(dev, uniKey);
     return `
       <section class="export-card">
-        <h2>${escapeHtml(dev.name)}</h2>
+        <h2>${index + 1}. ${escapeHtml(dev.name)}</h2>
         <div class="export-grid">
           <div class="export-label">School</div><div>${escapeHtml(uni.name)}</div>
           <div class="export-label">Commute</div><div>${escapeHtml(dev.time)} minutes · ${escapeHtml(dev.commute)}</div>
@@ -3709,6 +3869,30 @@ function renderBedChips() {
   });
 }
 
+function renderAreaChips() {
+  const grid = document.getElementById('area-grid');
+  grid.innerHTML = '';
+  const counts = {};
+  currentEntries.forEach(({ dev }) => {
+    const key = areaKey(dev.area);
+    if (key) counts[key] = (counts[key] || 0) + 1;
+  });
+  Object.entries(counts)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .filter(([area]) => !areaSearchQuery || area.toLowerCase().includes(areaSearchQuery.toLowerCase()))
+    .forEach(([area, count]) => {
+      const chip = document.createElement('div');
+      chip.className = 'filter-chip' + (activeAreas.has(area) ? ' active' : '');
+      chip.innerHTML = `
+        <div class="filter-dot" style="${activeAreas.has(area) ? 'background:var(--gold)' : ''}"></div>
+        <span class="filter-chip-label">${area}</span>
+        <span class="filter-chip-count">${count}</span>
+      `;
+      chip.addEventListener('click', () => toggleArea(area));
+      grid.appendChild(chip);
+    });
+}
+
 function renderStatusChips() {
   const grid = document.getElementById('status-grid');
   grid.innerHTML = '';
@@ -3745,6 +3929,13 @@ function toggleBed(key) {
   applyFilter();
 }
 
+function toggleArea(area) {
+  activeAreas.has(area) ? activeAreas.delete(area) : activeAreas.add(area);
+  document.getElementById('area-reset').style.display = activeAreas.size > 0 || areaSearchQuery ? 'block' : 'none';
+  renderAreaChips();
+  applyFilter();
+}
+
 function toggleStatus(key) {
   activeStatuses.has(key) ? activeStatuses.delete(key) : activeStatuses.add(key);
   document.getElementById('status-reset').style.display = activeStatuses.size > 0 ? 'block' : 'none';
@@ -3754,6 +3945,32 @@ function toggleStatus(key) {
 
 function toggleFilterPanel(panelId) {
   document.getElementById(panelId).classList.toggle('collapsed');
+}
+
+function setAreaSearch(value) {
+  areaSearchQuery = String(value || '').trim();
+  document.getElementById('area-reset').style.display = activeAreas.size > 0 || areaSearchQuery ? 'block' : 'none';
+  renderAreaChips();
+}
+
+function toggleClientPanel() {
+  document.getElementById('client-panel').classList.toggle('collapsed');
+}
+
+function applyClientRequirements() {
+  clientRequirements = {
+    budgetMax: parseBudgetInput(document.getElementById('client-budget-input')?.value),
+    bedKey: document.getElementById('client-bed-select')?.value || '',
+    areaQuery: String(document.getElementById('client-area-input')?.value || '').trim(),
+  };
+  applyFilter();
+}
+
+function resetClientRequirements() {
+  document.getElementById('client-budget-input').value = '';
+  document.getElementById('client-bed-select').value = '';
+  document.getElementById('client-area-input').value = '';
+  applyClientRequirements();
 }
 
 function clearPriceFilters() {
@@ -3771,6 +3988,15 @@ function clearBedFilters() {
   applyFilter();
 }
 
+function clearAreaFilters() {
+  activeAreas.clear();
+  areaSearchQuery = '';
+  document.getElementById('area-search-input').value = '';
+  document.getElementById('area-reset').style.display = 'none';
+  renderAreaChips();
+  applyFilter();
+}
+
 function clearStatusFilters() {
   activeStatuses.clear();
   document.getElementById('status-reset').style.display = 'none';
@@ -3781,6 +4007,7 @@ function clearStatusFilters() {
 function clearFilters() {
   clearPriceFilters();
   clearBedFilters();
+  clearAreaFilters();
   clearStatusFilters();
 }
 
@@ -3795,8 +4022,10 @@ function applyFilter() {
     attachPriceDetails(dev, uniKey);
     const inBed = activeBeds.size === 0 || getAvailableBedKeys(dev).some(key => activeBeds.has(key));
     const inPrice = activeBands.size === 0 || [...activeBands].some(bandIdx => matchesPriceBand(dev, bandIdx));
+    const inArea = activeAreas.size === 0 || activeAreas.has(areaKey(dev.area));
     const inStatus = activeStatuses.size === 0 || activeStatuses.has(getStatusKey(dev.ready));
-    const visible = inBed && inPrice && inStatus;
+    const inClientReq = matchesClientRequirements(dev);
+    const visible = inBed && inPrice && inArea && inStatus && inClientReq;
     el.classList.toggle('hidden', !visible);
     if (visible) visibleCount++;
     if (mapLoaded && markers[i]) markers[i].setVisible(visible);
@@ -3811,7 +4040,7 @@ function applyFilter() {
     msg.innerHTML = '😕 No developments match.<br><span style="color:var(--gold);cursor:pointer" onclick="clearFilters()">Clear all filters</span>';
     list.appendChild(msg);
   }
-  const anyFilter = activeBands.size > 0 || activeBeds.size > 0 || activeStatuses.size > 0;
+  const anyFilter = activeBands.size > 0 || activeBeds.size > 0 || activeAreas.size > 0 || activeStatuses.size > 0 || clientRequirements.budgetMax !== null || clientRequirements.bedKey || clientRequirements.areaQuery;
   document.getElementById('count-badge').textContent =
     anyFilter ? visibleCount + ' shown' : currentEntries.length + ' developments';
   updateSelectionControls();
@@ -3835,9 +4064,11 @@ function renderSidebar() {
 
   document.getElementById('filter-reset').style.display = activeBands.size > 0 ? 'block' : 'none';
   document.getElementById('bed-reset').style.display = activeBeds.size > 0 ? 'block' : 'none';
+  document.getElementById('area-reset').style.display = activeAreas.size > 0 || areaSearchQuery ? 'block' : 'none';
   document.getElementById('status-reset').style.display = activeStatuses.size > 0 ? 'block' : 'none';
   renderFilterChips();
   renderBedChips();
+  renderAreaChips();
   renderStatusChips();
 
   const list = document.getElementById('dev-list');

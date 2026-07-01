@@ -293,6 +293,14 @@
     color: #3f5f92;
     font-weight: 500;
   }
+  .uni-mini-pill {
+    border: 1px solid #d4d9eb;
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-size: 0.68rem;
+    font-weight: 500;
+    background: #ffffff;
+  }
 
   .dev-item-price-line {
     display: flex;
@@ -3026,7 +3034,7 @@ const UNIVERSITIES_STUB = {
       { name:"Paddington Gardens", area:"Paddington", address:"3-5 North Wharf Rd, London W2", time:18, commute:"Edgware Road → Circle → South Kensington", developer:"Strawberry Star", price:"£785,000", beds:"1–3", ready:"现房", lat:51.5214, lng:-0.1750 },
       { name:"No. 18 Porchester Gardens", area:"Bayswater", address:"18 Porchester Gardens, London W2", time:19, commute:"Bayswater → Circle → South Kensington", price:"£1,775,000", beds:"1–2", ready:"现房", lat:51.5124, lng:-0.1882 },
       { name:"The Whiteley", area:"Bayswater", address:"151 Queensway, London W2", time:19, commute:"Bayswater → Circle → South Kensington", developer:"Finchatton", price:"£1,500,000", beds:"1–5", ready:"现房", lat:51.5119, lng:-0.1871 },
-      { name:"Ebury", area:"Belgravia", address:"SW1W 8DY", time:23, commute:"Bus 360", developer:"City of Westminster", price:"£825,000", beds:"1–3", ready:"–", lat:51.4908, lng:-0.1484 },
+      { name:"Ebury", area:"Belgravia", address:"SW1W 8DY", time:23, commute:"Bus 360", developer:"City of Westminster", price:"£825,000", beds:"1–3", ready:"现房", lat:51.4908, lng:-0.1484 },
       { name:"White City Living", area:"White City", address:"Wood Lane, London W12", time:24, commute:"Wood Lane → Circle → South Kensington", developer:"Berkeley (St James)", price:"£735,000", beds:"0–3", ready:"2026/2027", lat:51.5088, lng:-0.2258 },
       { name:"Television Center", area:"White City", address:"Wood Lane, London W12", time:24, commute:"Wood Lane → Circle → South Kensington", developer:"Mitsui Fudosan", price:"£595,000", beds:"0–3", ready:"2027 Q2", lat:51.5080, lng:-0.2268 },
       { name:"The OWO", area:"Whitehall", address:"Whitehall Place, London SW1A", time:24, commute:"Bus 9", developer:"Hinduja Group", price:"£4,000,000", beds:"1–4", ready:"现房", lat:51.5055, lng:-0.1247 },
@@ -3130,7 +3138,8 @@ const UNIVERSITIES_STUB = {
 // STATE
 // ============================================================
 let UNIVERSITIES = UNIVERSITIES_STUB; // Data loaded from stub (keep in sync with Google Sheet manually)
-let map, activeUni = "UCL", markers = [], uniMarker = null, infoWindow = null;
+let map, activeUni = "UCL", activeUnis = new Set(["UCL"]), markers = [], uniMarkers = [], infoWindow = null;
+let currentEntries = [];
 let mapLoaded = false;
 let dataLoaded = true; // data is immediately available from stub
 
@@ -3377,13 +3386,32 @@ let activeBands = new Set();
 let activeBeds = new Set();
 let activeStatuses = new Set();
 
+function getSelectedUniKeys() {
+  return [...activeUnis].filter(key => UNIVERSITIES[key]);
+}
+
+function shortUniName(uni) {
+  return uni.name.split('(')[0].replace('& LSE', '').trim();
+}
+
+function getSelectedEntries() {
+  return getSelectedUniKeys()
+    .flatMap(uniKey => {
+      const uni = UNIVERSITIES[uniKey];
+      return uni.developments.map(dev => ({ dev, uni, uniKey }));
+    })
+    .sort((a, b) => a.dev.time - b.dev.time || a.dev.name.localeCompare(b.dev.name));
+}
+
 // ── Price filter chips ──
-function renderFilterChips(uniKey) {
-  const uni = UNIVERSITIES[uniKey];
+function renderFilterChips() {
   const grid = document.getElementById('filter-grid');
   grid.innerHTML = '';
   const counts = new Array(PRICE_BANDS.length).fill(0);
-  uni.developments.forEach(dev => { attachPriceDetails(dev, uniKey); counts[getBedroomPriceBand(dev)]++; });
+  currentEntries.forEach(({ dev, uniKey }) => {
+    attachPriceDetails(dev, uniKey);
+    counts[getBedroomPriceBand(dev)]++;
+  });
   PRICE_BANDS.forEach((band, i) => {
     if (counts[i] === 0) return;
     const chip = document.createElement('div');
@@ -3394,20 +3422,19 @@ function renderFilterChips(uniKey) {
       <span class="filter-chip-label">${band.label}</span>
       <span class="filter-chip-count">${counts[i]}</span>
     `;
-    chip.addEventListener('click', () => toggleBand(i, uniKey));
+    chip.addEventListener('click', () => toggleBand(i));
     grid.appendChild(chip);
   });
 }
 
 // ── Status filter chips ──
 
-function renderBedChips(uniKey) {
-  const uni = UNIVERSITIES[uniKey];
+function renderBedChips() {
   const grid = document.getElementById('bed-grid');
   grid.innerHTML = '';
   const counts = {};
   BED_CATEGORIES.forEach(b => { counts[b.key] = 0; });
-  uni.developments.forEach(dev => {
+  currentEntries.forEach(({ dev, uniKey }) => {
     attachPriceDetails(dev, uniKey);
     getAvailableBedKeys(dev).forEach(key => { counts[key]++; });
   });
@@ -3420,18 +3447,17 @@ function renderBedChips(uniKey) {
       <span class="filter-chip-label">${bed.label}</span>
       <span class="filter-chip-count">${counts[bed.key]}</span>
     `;
-    chip.addEventListener('click', () => toggleBed(bed.key, uniKey));
+    chip.addEventListener('click', () => toggleBed(bed.key));
     grid.appendChild(chip);
   });
 }
 
-function renderStatusChips(uniKey) {
-  const uni = UNIVERSITIES[uniKey];
+function renderStatusChips() {
   const grid = document.getElementById('status-grid');
   grid.innerHTML = '';
   const counts = {};
   STATUS_BANDS.forEach(b => { counts[b.key] = 0; });
-  uni.developments.forEach(dev => { counts[getStatusKey(dev.ready)]++; });
+  currentEntries.forEach(({ dev }) => { counts[getStatusKey(dev.ready)]++; });
   STATUS_BANDS.forEach((band) => {
     if (counts[band.key] === 0) return;
     const chip = document.createElement('div');
@@ -3442,31 +3468,31 @@ function renderStatusChips(uniKey) {
       <span class="filter-chip-label">${band.label}</span>
       <span class="filter-chip-count">${counts[band.key]}</span>
     `;
-    chip.addEventListener('click', () => toggleStatus(band.key, uniKey));
+    chip.addEventListener('click', () => toggleStatus(band.key));
     grid.appendChild(chip);
   });
 }
 
-function toggleBand(bandIdx, uniKey) {
+function toggleBand(bandIdx) {
   activeBands.has(bandIdx) ? activeBands.delete(bandIdx) : activeBands.add(bandIdx);
   document.getElementById('filter-reset').style.display = activeBands.size > 0 ? 'block' : 'none';
-  renderFilterChips(uniKey);
-  applyFilter(uniKey);
+  renderFilterChips();
+  applyFilter();
 }
 
-function toggleBed(key, uniKey) {
+function toggleBed(key) {
   activeBeds.has(key) ? activeBeds.delete(key) : activeBeds.add(key);
   document.getElementById('bed-reset').style.display = activeBeds.size > 0 ? 'block' : 'none';
-  renderBedChips(uniKey);
-  renderFilterChips(uniKey);
-  applyFilter(uniKey);
+  renderBedChips();
+  renderFilterChips();
+  applyFilter();
 }
 
-function toggleStatus(key, uniKey) {
+function toggleStatus(key) {
   activeStatuses.has(key) ? activeStatuses.delete(key) : activeStatuses.add(key);
   document.getElementById('status-reset').style.display = activeStatuses.size > 0 ? 'block' : 'none';
-  renderStatusChips(uniKey);
-  applyFilter(uniKey);
+  renderStatusChips();
+  applyFilter();
 }
 
 function toggleFilterPanel(panelId) {
@@ -3476,23 +3502,23 @@ function toggleFilterPanel(panelId) {
 function clearPriceFilters() {
   activeBands.clear();
   document.getElementById('filter-reset').style.display = 'none';
-  renderFilterChips(activeUni);
-  applyFilter(activeUni);
+  renderFilterChips();
+  applyFilter();
 }
 
 function clearBedFilters() {
   activeBeds.clear();
   document.getElementById('bed-reset').style.display = 'none';
-  renderBedChips(activeUni);
-  renderFilterChips(activeUni);
-  applyFilter(activeUni);
+  renderBedChips();
+  renderFilterChips();
+  applyFilter();
 }
 
 function clearStatusFilters() {
   activeStatuses.clear();
   document.getElementById('status-reset').style.display = 'none';
-  renderStatusChips(activeUni);
-  applyFilter(activeUni);
+  renderStatusChips();
+  applyFilter();
 }
 
 function clearFilters() {
@@ -3501,15 +3527,14 @@ function clearFilters() {
   clearStatusFilters();
 }
 
-function applyFilter(uniKey) {
+function applyFilter() {
   const items = document.querySelectorAll('.dev-item');
-  const uni = UNIVERSITIES[uniKey];
-  const sorted = [...uni.developments].sort((a,b) => a.time - b.time);
   let visibleCount = 0;
 
   items.forEach((el, i) => {
-    const dev = sorted[i];
-    if (!dev) return;
+    const entry = currentEntries[i];
+    if (!entry) return;
+    const { dev, uniKey } = entry;
     attachPriceDetails(dev, uniKey);
     const inBed = activeBeds.size === 0 || getAvailableBedKeys(dev).some(key => activeBeds.has(key));
     const inPrice = activeBands.size === 0 || [...activeBands].some(bandIdx => matchesPriceBand(dev, bandIdx));
@@ -3531,7 +3556,7 @@ function applyFilter(uniKey) {
   }
   const anyFilter = activeBands.size > 0 || activeBeds.size > 0 || activeStatuses.size > 0;
   document.getElementById('count-badge').textContent =
-    anyFilter ? visibleCount + ' shown' : uni.developments.length + ' developments';
+    anyFilter ? visibleCount + ' shown' : currentEntries.length + ' developments';
 }
 
 // ============================================================
@@ -3540,26 +3565,26 @@ function applyFilter(uniKey) {
 // ============================================================
 // SIDEBAR
 // ============================================================
-function renderSidebar(uniKey) {
-  const uni = UNIVERSITIES[uniKey];
-  document.getElementById('sidebar-title').textContent = uni.name;
-  document.getElementById('count-badge').textContent = uni.developments.length + ' developments';
+function renderSidebar() {
+  const selectedKeys = getSelectedUniKeys();
+  const selectedNames = selectedKeys.map(key => shortUniName(UNIVERSITIES[key]));
+  document.getElementById('sidebar-title').textContent =
+    selectedNames.length === 1 ? selectedNames[0] : `${selectedNames.length} Schools Selected`;
 
-  activeBands.clear();
-  activeBeds.clear();
-  activeStatuses.clear();
-  document.getElementById('filter-reset').style.display = 'none';
-  document.getElementById('bed-reset').style.display = 'none';
-  document.getElementById('status-reset').style.display = 'none';
-  renderFilterChips(uniKey);
-  renderBedChips(uniKey);
-  renderStatusChips(uniKey);
+  currentEntries = getSelectedEntries();
+  document.getElementById('count-badge').textContent = currentEntries.length + ' developments';
+
+  document.getElementById('filter-reset').style.display = activeBands.size > 0 ? 'block' : 'none';
+  document.getElementById('bed-reset').style.display = activeBeds.size > 0 ? 'block' : 'none';
+  document.getElementById('status-reset').style.display = activeStatuses.size > 0 ? 'block' : 'none';
+  renderFilterChips();
+  renderBedChips();
+  renderStatusChips();
 
   const list = document.getElementById('dev-list');
   list.innerHTML = '';
 
-  const sorted = [...uni.developments].sort((a,b) => a.time - b.time);
-  sorted.forEach((dev, i) => {
+  currentEntries.forEach(({ dev, uni, uniKey }, i) => {
     const div = document.createElement('div');
     div.className = 'dev-item';
     div.style.borderLeftColor = uni.color;
@@ -3568,6 +3593,7 @@ function renderSidebar(uniKey) {
       <div class="dev-item-name">${dev.name}</div>
       <div class="dev-item-meta">
         <span class="time-pill">⏱ ${dev.time} min</span>
+        <span class="uni-mini-pill" style="border-color:${uni.color};color:${uni.bgColor || uni.color}">${shortUniName(uni)}</span>
         <span>${dev.area}</span>
       </div>
       <div class="dev-item-price-line">
@@ -3577,8 +3603,7 @@ function renderSidebar(uniKey) {
     `;
     div.addEventListener('click', () => {
       if (!mapLoaded) return;
-      const idx = sorted.findIndex(d => d.name === dev.name);
-      const marker = markers[idx];
+      const marker = markers[i];
       if (marker) {
         map.panTo(marker.getPosition());
         map.setZoom(15);
@@ -3589,6 +3614,7 @@ function renderSidebar(uniKey) {
     });
     list.appendChild(div);
   });
+  applyFilter();
 }
 
 // ============================================================
@@ -3618,41 +3644,46 @@ window.initMap = function() {
   });
 
   infoWindow = new google.maps.InfoWindow({ maxWidth: 280 });
-  renderUniOnMap(activeUni);
+  renderUniOnMap();
 };
 
-function renderUniOnMap(uniKey) {
+function renderUniOnMap() {
   // Clear old markers
   markers.forEach(m => m.setMap(null));
   markers = [];
-  if (uniMarker) uniMarker.setMap(null);
+  uniMarkers.forEach(m => m.setMap(null));
+  uniMarkers = [];
   if (infoWindow) infoWindow.close();
 
-  const uni = UNIVERSITIES[uniKey];
+  const bounds = new google.maps.LatLngBounds();
+  const selectedKeys = getSelectedUniKeys();
 
-  // University marker
-  uniMarker = new google.maps.Marker({
-    position: { lat: uni.lat, lng: uni.lng },
-    map,
-    title: uni.name,
-    icon: {
-      path: google.maps.SymbolPath.CIRCLE,
-      scale: 18,
-      fillColor: uni.color,
-      fillOpacity: 1,
-      strokeColor: '#ffffff',
-      strokeWeight: 3,
-    },
-    label: { text: '🏛', fontSize: '14px' },
-    zIndex: 1000,
-  });
-  uniMarker.addListener('click', () => {
-    infoWindow.setContent(`<div class="iw-content"><div class="iw-name">${uni.name}</div><div class="iw-row" style="color:#aaa;font-size:0.8rem;">University campus</div></div>`);
-    infoWindow.open(map, uniMarker);
+  selectedKeys.forEach((uniKey) => {
+    const uni = UNIVERSITIES[uniKey];
+    const uniMarker = new google.maps.Marker({
+      position: { lat: uni.lat, lng: uni.lng },
+      map,
+      title: uni.name,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 18,
+        fillColor: uni.color,
+        fillOpacity: 1,
+        strokeColor: '#ffffff',
+        strokeWeight: 3,
+      },
+      label: { text: '🏛', fontSize: '14px' },
+      zIndex: 1000,
+    });
+    uniMarker.addListener('click', () => {
+      infoWindow.setContent(`<div class="iw-content"><div class="iw-name">${uni.name}</div><div class="iw-row" style="color:#aaa;font-size:0.8rem;">University campus</div></div>`);
+      infoWindow.open(map, uniMarker);
+    });
+    uniMarkers.push(uniMarker);
+    bounds.extend(uniMarker.getPosition());
   });
 
-  const sorted = [...uni.developments].sort((a,b) => a.time - b.time);
-  sorted.forEach((dev, i) => {
+  currentEntries.forEach(({ dev, uniKey }, i) => {
     const color = timeColor(dev.time);
     const marker = new google.maps.Marker({
       position: { lat: dev.lat, lng: dev.lng },
@@ -3679,11 +3710,17 @@ function renderUniOnMap(uniKey) {
     });
 
     markers.push(marker);
+    bounds.extend(marker.getPosition());
   });
 
-  // Pan to university
-  map.panTo({ lat: uni.lat, lng: uni.lng });
-  map.setZoom(12);
+  if (!bounds.isEmpty()) {
+    map.fitBounds(bounds, 36);
+    if (selectedKeys.length === 1) {
+      google.maps.event.addListenerOnce(map, 'idle', () => {
+        if (map.getZoom() > 12) map.setZoom(12);
+      });
+    }
+  }
 }
 
 function parseTransportSteps(commute) {
@@ -3774,17 +3811,32 @@ function timeColor(mins) {
 // ============================================================
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    activeUni = tab.dataset.uni;
-    renderSidebar(activeUni);
-    if (mapLoaded) renderUniOnMap(activeUni);
+    const uniKey = tab.dataset.uni;
+    if (activeUnis.has(uniKey) && activeUnis.size > 1) {
+      activeUnis.delete(uniKey);
+    } else {
+      activeUnis.add(uniKey);
+      activeUni = uniKey;
+    }
+    syncTabState();
+    renderSidebar();
+    if (mapLoaded) {
+      renderUniOnMap();
+      applyFilter();
+    }
   });
 });
 
+function syncTabState() {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.classList.toggle('active', activeUnis.has(tab.dataset.uni));
+  });
+}
+
 // Init — render immediately from stub data
 enrichUniversityPrices();
-renderSidebar('UCL');
+syncTabState();
+renderSidebar();
 
 // ============================================================
 // DARK MAP STYLE

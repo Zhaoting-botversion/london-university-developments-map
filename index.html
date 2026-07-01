@@ -838,36 +838,80 @@
       font-weight: 700;
       margin-bottom: 22px;
     }
+    .export-cover-tagline {
+      color: #C9A84C;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
     .export-company-box {
       border-left: 5px solid #2BABB3;
-      padding: 12px 0 12px 16px;
-      margin: 20px 0 20px;
-      max-width: 500px;
+      padding: 10px 0 10px 14px;
+      margin: 16px 0 16px;
+      max-width: 520px;
+      font-size: 11px;
+      line-height: 1.65;
+    }
+    .export-cover-heading {
+      color: #1A2B4A;
       font-size: 12px;
-      line-height: 1.8;
+      font-weight: 800;
+      margin: 16px 0 8px;
     }
     .export-stats {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-top: 24px;
+      gap: 8px;
+      margin-top: 10px;
     }
     .export-stat {
       border: 1px solid #C9A84C;
       border-radius: 8px;
-      padding: 10px;
-      min-height: 58px;
+      padding: 8px;
+      min-height: 50px;
     }
     .export-stat strong {
       display: block;
       color: #2BABB3;
-      font-size: 18px;
+      font-size: 16px;
       margin-bottom: 4px;
     }
     .export-stat span {
       color: #1A2B4A;
-      font-size: 10px;
+      font-size: 9px;
       line-height: 1.35;
+    }
+    .export-market-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .export-market-card {
+      background: #F4F7F8;
+      border: 1px solid #D7E5E8;
+      border-radius: 8px;
+      padding: 8px;
+    }
+    .export-market-card strong {
+      display: block;
+      color: #1A2B4A;
+      font-size: 11px;
+      margin-bottom: 5px;
+    }
+    .export-market-card span {
+      display: block;
+      color: #666666;
+      font-size: 9px;
+      line-height: 1.45;
+    }
+    .export-cover-note {
+      margin-top: 12px;
+      color: #2BABB3;
+      font-size: 11px;
+      font-weight: 700;
     }
     .export-section-title {
       color: #1A2B4A;
@@ -4070,18 +4114,27 @@ function buildExportCards(entries) {
 function buildCompanyCover(data) {
   return `
     <section class="export-cover">
-      <div class="export-cover-kicker">LANDMA GLOBAL · PREMIUM REAL ESTATE</div>
+      <div class="export-cover-kicker">LANDMA GLOBAL</div>
       <div class="export-cover-title">${escapeHtml(data.reportTitle)}</div>
       <div class="export-cover-subtitle">全球高净值客户跨境不动产配置专家</div>
+      <div class="export-cover-tagline">YOUR TRUSTED PARTNER IN GLOBAL PREMIUM REAL ESTATE</div>
       <div class="export-company-box">
-        蓝玛国际（LANDMA GLOBAL）是一家注册于新加坡的跨境不动产交易平台，专注于为高净值客户提供全球资产配置服务。我们围绕客户在投资、自住、教育与家庭规划中的多元化房产需求，依托全球房源网络、专业服务团队、技术平台和合作伙伴资源，为客户提供精选优质不动产及全生命周期一站式置业解决方案。
+        蓝玛国际（LANDMA GLOBAL）是一家注册于新加坡的跨境不动产交易平台，专注于为高净值客户提供全球资产配置服务，主要服务于客户在全球资产配置、投资、自住、教育等全生命周期的多元化房产需求。凭借高覆盖度的房源网络、专业服务团队、创新技术平台以及强大的合作伙伴关系，蓝玛国际为客户提供精选全球优质不动产，以及全生命周期一站式房产投资解决方案。
       </div>
+      <div class="export-cover-heading">公司能力</div>
       <div class="export-stats">
-        <div class="export-stat"><strong>10年</strong><span>深耕跨境不动产服务</span></div>
+        <div class="export-stat"><strong>10年</strong><span>专注跨境不动产服务</span></div>
         <div class="export-stat"><strong>50+</strong><span>专业精英团队</span></div>
         <div class="export-stat"><strong>21城</strong><span>全球核心城市布局</span></div>
-        <div class="export-stat"><strong>600+</strong><span>累计跨境置业成交</span></div>
+        <div class="export-stat"><strong>600+</strong><span>累计成交单量</span></div>
       </div>
+      <div class="export-cover-heading">海外市场成交经验</div>
+      <div class="export-market-grid">
+        <div class="export-market-card"><strong>美国 · 2016年进驻</strong><span>累计成交 246 单<br>累计成交金额 19.4 亿</span></div>
+        <div class="export-market-card"><strong>英国 · 2019年进驻</strong><span>累计成交 206 单<br>累计成交金额 14.4 亿</span></div>
+        <div class="export-market-card"><strong>日本 · 2020年进驻</strong><span>累计成交 143 单<br>累计成交金额 12.1 亿</span></div>
+      </div>
+      <div class="export-cover-note">深耕海外 8 年，累计成交额突破 47.7 亿，服务数百位高净值客户跨境置业需求。</div>
     </section>
   `;
 }

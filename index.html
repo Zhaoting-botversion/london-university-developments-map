@@ -768,6 +768,16 @@
       font-size: 11px;
       margin-bottom: 18px;
     }
+    .export-intro {
+      color: #1f2a44;
+      font-size: 12px;
+      line-height: 1.7;
+      margin: 0 0 16px;
+      padding: 12px 14px;
+      background: #f7f9fd;
+      border: 1px solid #dfe5f2;
+      border-radius: 8px;
+    }
     .export-card {
       break-inside: avoid;
       border: 1px solid #d4d9eb;
@@ -3766,6 +3776,34 @@ function exportPriceRows(dev) {
   return `<table class="export-price-table"><thead><tr><th>Bedroom</th><th>Price</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
+function formatBudgetForIntro(value) {
+  if (!Number.isFinite(value)) return '综合';
+  const wan = value / 10000;
+  const label = Number.isInteger(wan) ? String(wan) : wan.toFixed(1).replace(/\.0$/, '');
+  return `£${label}万`;
+}
+
+function formatBedForIntro(key) {
+  return {
+    studio: 'Studio',
+    one: '一居室',
+    two: '两居室',
+    three: '三居室',
+    fourPlus: '四居及以上',
+    penthouse: '顶层公寓',
+  }[key] || '';
+}
+
+function getRequirementIntro(clientName, entries) {
+  const req = clientRequirements || {};
+  const bedLabel = formatBedForIntro(req.bedKey);
+  const budgetLabel = req.budgetMax === null ? '综合' : formatBudgetForIntro(req.budgetMax);
+  const areaLabel = req.areaQuery || '关注区域';
+  const schoolNames = [...new Set(entries.map(({ uni }) => shortUniName(uni)))].join('、') || '目标学校';
+  const bedText = bedLabel ? `${bedLabel}户型` : '合适户型';
+  return `${clientName}您好，根据您的需求：${bedText}、${budgetLabel}预算，以及在${schoolNames}周边${areaLabel !== '关注区域' ? `、${areaLabel}` : ''}的位置，我们已为您全面扫描最新楼盘信息，并筛选出以下符合需求的项目，供您参考。`;
+}
+
 function exportSelectedPdf() {
   const entries = selectedEntries();
   if (!entries.length) return;
@@ -3776,6 +3814,7 @@ function exportSelectedPdf() {
   const clientInput = document.getElementById('client-name-input');
   if (clientInput && !clientInput.value.trim()) clientInput.value = cleanClientName;
   const reportTitle = `${cleanClientName}伦敦配置推荐方案`;
+  const requirementIntro = getRequirementIntro(cleanClientName, entries);
 
   const generatedAt = new Date().toLocaleString('en-GB', {
     year: 'numeric',
@@ -3812,6 +3851,7 @@ function exportSelectedPdf() {
       </div>
       <img class="export-logo" src="assets/landma-logo.png" alt="LANDMA GLOBAL">
     </div>
+    <div class="export-intro">${escapeHtml(requirementIntro)}</div>
     ${cards}
   `;
 

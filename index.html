@@ -986,6 +986,59 @@
       border-left: 4px solid #2BABB3;
       border-radius: 8px;
     }
+    .export-overview {
+      break-inside: avoid;
+      page-break-after: always;
+      border: 1px solid #D7E5E8;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+    .export-overview h2 {
+      margin: 0 0 8px;
+      color: #1A2B4A;
+      font-size: 18px;
+    }
+    .export-overview-map {
+      width: 100%;
+      height: auto;
+      border: 1px solid #D7E5E8;
+      border-radius: 8px;
+      display: block;
+      margin: 8px 0 10px;
+    }
+    .export-overview-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px 12px;
+      font-size: 10px;
+    }
+    .export-overview-item {
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      gap: 6px;
+      align-items: start;
+    }
+    .export-overview-no {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #2BABB3;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 9px;
+    }
+    .export-overview-name {
+      color: #1A2B4A;
+      font-weight: 700;
+    }
+    .export-overview-area {
+      color: #666666;
+      margin-top: 1px;
+    }
     .export-card {
       break-inside: avoid;
       border: 1px solid #D7E5E8;
@@ -4214,6 +4267,49 @@ function buildCompanyCover(data) {
   `;
 }
 
+function overviewMarkerLabel(index) {
+  const labels = '123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  return labels[index] || String((index % 9) + 1);
+}
+
+function buildOverviewMapUrl(entries) {
+  const base = 'https://maps.googleapis.com/maps/api/staticmap';
+  const params = new URLSearchParams({
+    size: '900x520',
+    scale: '2',
+    maptype: 'roadmap',
+    key: 'AIzaSyBOmaVXpkaKOozddTe-b9OLf8sbY0H5rg0',
+  });
+  params.append('style', 'feature:poi|visibility:off');
+  params.append('style', 'feature:transit.station|visibility:on');
+  entries.forEach((entry, index) => {
+    const { dev } = entry;
+    if (!Number.isFinite(dev.lat) || !Number.isFinite(dev.lng)) return;
+    params.append('markers', `color:0x2BABB3|label:${overviewMarkerLabel(index)}|${dev.lat},${dev.lng}`);
+  });
+  return `${base}?${params.toString()}`;
+}
+
+function buildExportOverview(entries) {
+  const mapUrl = buildOverviewMapUrl(entries);
+  const items = entries.map((entry, index) => `
+    <div class="export-overview-item">
+      <span class="export-overview-no">${overviewMarkerLabel(index)}</span>
+      <div>
+        <div class="export-overview-name">${index + 1}. ${escapeHtml(entry.dev.name)}</div>
+        <div class="export-overview-area">${escapeHtml(entry.dev.area || '')}</div>
+      </div>
+    </div>
+  `).join('');
+  return `
+    <section class="export-overview">
+      <h2>项目分布 Overview</h2>
+      <img class="export-overview-map" src="${mapUrl}" alt="Selected project overview map">
+      <div class="export-overview-list">${items}</div>
+    </section>
+  `;
+}
+
 function renderExportReport(data, introText) {
   const logoSrc = new URL('assets/landma-logo.png', window.location.href).href;
   document.getElementById('export-report').innerHTML = `
@@ -4227,6 +4323,7 @@ function renderExportReport(data, introText) {
       </div>
     </div>
     <div class="export-intro">${escapeHtml(introText)}</div>
+    ${buildExportOverview(data.entries)}
     ${data.cards}
   `;
 }

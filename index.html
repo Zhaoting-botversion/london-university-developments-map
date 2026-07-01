@@ -4757,7 +4757,6 @@ function loadMap() {
   script.async = true;
   document.head.appendChild(script);
 }
-loadMap();
 
 window.initMap = function() {
   mapLoaded = true;
@@ -4776,6 +4775,8 @@ window.initMap = function() {
   infoWindow = new google.maps.InfoWindow({ maxWidth: 280 });
   renderUniOnMap();
 };
+
+loadMap();
 
 function renderUniOnMap() {
   // Clear old markers

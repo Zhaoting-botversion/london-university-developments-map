@@ -674,6 +674,21 @@
       margin-bottom: 6px;
       color: #223b63;
     }
+    .export-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid #d4d9eb;
+      padding-bottom: 12px;
+    }
+    .export-logo {
+      width: 150px;
+      height: auto;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
     .export-meta {
       color: #6b7394;
       font-size: 11px;
@@ -3599,6 +3614,10 @@ function exportPriceRows(dev) {
 function exportSelectedPdf() {
   const entries = selectedEntries();
   if (!entries.length) return;
+  const clientName = window.prompt('请输入客户称呼，例如：张先生李女士', '');
+  if (clientName === null) return;
+  const cleanClientName = clientName.trim() || '客户';
+  const reportTitle = `${cleanClientName}伦敦配置推荐方案`;
 
   const generatedAt = new Date().toLocaleString('en-GB', {
     year: 'numeric',
@@ -3610,7 +3629,6 @@ function exportSelectedPdf() {
 
   const cards = entries.map(({ dev, uni, uniKey }) => {
     attachPriceDetails(dev, uniKey);
-    const details = dev.priceDetails || {};
     return `
       <section class="export-card">
         <h2>${escapeHtml(dev.name)}</h2>
@@ -3624,16 +3642,18 @@ function exportSelectedPdf() {
           <div class="export-label">Beds</div><div>${escapeHtml(dev.beds || 'N/A')}</div>
         </div>
         ${exportPriceRows(dev)}
-        ${details.reservation ? `<div class="export-meta"><strong>Reservation:</strong> ${escapeHtml(details.reservation)}</div>` : ''}
-        ${details.payment ? `<div class="export-meta"><strong>Payment:</strong> ${escapeHtml(details.payment)}</div>` : ''}
-        ${details.source ? `<div class="export-meta"><strong>Source:</strong> ${escapeHtml(details.source)}</div>` : ''}
       </section>
     `;
   }).join('');
 
   document.getElementById('export-report').innerHTML = `
-    <div class="export-title">London University Developments 推荐清单</div>
-    <div class="export-meta">${entries.length} 个选项 · 生成时间 ${escapeHtml(generatedAt)}</div>
+    <div class="export-header">
+      <div>
+        <div class="export-title">${escapeHtml(reportTitle)}</div>
+        <div class="export-meta">${entries.length} 个选项 · 生成时间 ${escapeHtml(generatedAt)}</div>
+      </div>
+      <img class="export-logo" src="assets/landma-logo.png" alt="LANDMA GLOBAL">
+    </div>
     ${cards}
   `;
 

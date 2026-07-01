@@ -745,9 +745,9 @@
       <span class="sidebar-title" id="sidebar-title">UCL Bloomsbury</span>
       <span class="count-badge" id="count-badge">32 developments</span>
       <div class="export-actions">
-        <button class="export-btn" id="export-pdf-btn" onclick="exportSelectedPdf()" disabled>Export PDF</button>
-        <button class="export-btn" id="clear-selection-btn" onclick="clearSelectedDevelopments()" disabled>Clear selected</button>
-        <span class="selection-count" id="selection-count">0 selected</span>
+        <button class="export-btn" id="export-pdf-btn" onclick="exportSelectedPdf()" disabled>导出PDF</button>
+        <button class="export-btn" id="clear-selection-btn" onclick="clearSelectedDevelopments()" disabled>清除选项</button>
+        <span class="selection-count" id="selection-count">0 个选项</span>
       </div>
     </div>
     <div class="sidebar-scroll">
@@ -3555,7 +3555,7 @@ function updateSelectionControls() {
   const label = document.getElementById('selection-count');
   const exportBtn = document.getElementById('export-pdf-btn');
   const clearBtn = document.getElementById('clear-selection-btn');
-  if (label) label.textContent = count === 1 ? '1 selected' : `${count} selected`;
+  if (label) label.textContent = `${count} 个选项`;
   if (exportBtn) exportBtn.disabled = count === 0;
   if (clearBtn) clearBtn.disabled = count === 0;
 }
@@ -3632,8 +3632,8 @@ function exportSelectedPdf() {
   }).join('');
 
   document.getElementById('export-report').innerHTML = `
-    <div class="export-title">London University Developments Shortlist</div>
-    <div class="export-meta">${entries.length} selected developments · Generated ${escapeHtml(generatedAt)}</div>
+    <div class="export-title">London University Developments 推荐清单</div>
+    <div class="export-meta">${entries.length} 个选项 · 生成时间 ${escapeHtml(generatedAt)}</div>
     ${cards}
   `;
 
@@ -3807,7 +3807,7 @@ function renderSidebar() {
   const selectedKeys = getSelectedUniKeys();
   const selectedNames = selectedKeys.map(key => shortUniName(UNIVERSITIES[key]));
   document.getElementById('sidebar-title').textContent =
-    selectedNames.length === 1 ? selectedNames[0] : `${selectedNames.length} Schools Selected`;
+    selectedNames.length === 1 ? selectedNames[0] : `已选择 ${selectedNames.length} 所学校`;
 
   currentEntries = getSelectedEntries();
   pruneSelectedDevelopments();
@@ -3833,7 +3833,7 @@ function renderSidebar() {
     attachPriceDetails(dev, uniKey);
     div.innerHTML = `
       <div class="dev-item-top">
-        <button class="select-dev-btn ${isSelected ? 'selected' : ''}" title="Select for PDF">✓</button>
+        <button class="select-dev-btn ${isSelected ? 'selected' : ''}" title="加入导出选项">✓</button>
         <div class="dev-item-main">
           <div class="dev-item-name">${dev.name}</div>
           <div class="dev-item-meta">

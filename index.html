@@ -1017,6 +1017,11 @@
       overflow: hidden;
       background: #eef3f5;
     }
+    .export-overview-map svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
     .export-overview-list {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -4282,6 +4287,120 @@ function overviewMarkerLabel(index) {
   return labels[index] || String((index % 9) + 1);
 }
 
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function buildExportOverviewSnapshot(entries) {
+  const validEntries = entries.filter(({ dev }) => Number.isFinite(dev.lat) && Number.isFinite(dev.lng));
+  if (!validEntries.length) {
+    return '<div class="export-overview-map"><div style="padding:20px;color:#666;">Map locations are not available.</div></div>';
+  }
+
+  const width = 1000;
+  const height = 560;
+  const pad = 54;
+  let minLat = Math.min(...validEntries.map(({ dev }) => dev.lat));
+  let maxLat = Math.max(...validEntries.map(({ dev }) => dev.lat));
+  let minLng = Math.min(...validEntries.map(({ dev }) => dev.lng));
+  let maxLng = Math.max(...validEntries.map(({ dev }) => dev.lng));
+
+  if (maxLat - minLat < 0.08) {
+    const mid = (maxLat + minLat) / 2;
+    minLat = mid - 0.04;
+    maxLat = mid + 0.04;
+  }
+  if (maxLng - minLng < 0.12) {
+    const mid = (maxLng + minLng) / 2;
+    minLng = mid - 0.06;
+    maxLng = mid + 0.06;
+  }
+
+  const latPad = (maxLat - minLat) * 0.22;
+  const lngPad = (maxLng - minLng) * 0.22;
+  minLat = clamp(minLat - latPad, 51.2, 51.72);
+  maxLat = clamp(maxLat + latPad, 51.2, 51.72);
+  minLng = clamp(minLng - lngPad, -0.7, 0.35);
+  maxLng = clamp(maxLng + lngPad, -0.7, 0.35);
+
+  const project = (lat, lng) => ({
+    x: pad + ((lng - minLng) / (maxLng - minLng || 1)) * (width - pad * 2),
+    y: pad + ((maxLat - lat) / (maxLat - minLat || 1)) * (height - pad * 2),
+  });
+
+  const thames = [
+    [51.489, -0.34], [51.492, -0.27], [51.486, -0.20], [51.492, -0.14],
+    [51.503, -0.09], [51.508, -0.03], [51.503, 0.02], [51.493, 0.08],
+    [51.492, 0.16],
+  ].filter(([lat, lng]) => lat >= minLat - 0.05 && lat <= maxLat + 0.05 && lng >= minLng - 0.05 && lng <= maxLng + 0.05)
+    .map(([lat, lng]) => {
+      const point = project(lat, lng);
+      return `${point.x.toFixed(1)},${point.y.toFixed(1)}`;
+    }).join(' ');
+
+  const areaLabels = [
+    ['Paddington', 51.515, -0.176],
+    ['Marylebone', 51.522, -0.151],
+    ['Fitzrovia', 51.52, -0.135],
+    ['Mayfair', 51.51, -0.147],
+    ['Kensington', 51.499, -0.193],
+    ['Nine Elms', 51.48, -0.13],
+    ['Shoreditch', 51.525, -0.08],
+    ['Canary Wharf', 51.505, -0.02],
+    ['London', 51.5074, -0.1278],
+  ].filter(([, lat, lng]) => lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng)
+    .map(([name, lat, lng]) => {
+      const point = project(lat, lng);
+      return `<text x="${point.x.toFixed(1)}" y="${point.y.toFixed(1)}" class="snapshot-area">${escapeHtml(name)}</text>`;
+    }).join('');
+
+  const markers = validEntries.map((entry, index) => {
+    const point = project(entry.dev.lat, entry.dev.lng);
+    const labelX = clamp(point.x + (index % 2 === 0 ? 18 : -18), 72, width - 72);
+    const labelY = clamp(point.y + (index % 3 - 1) * 22 - 16, 36, height - 28);
+    const anchor = labelX < point.x ? 'end' : 'start';
+    return `
+      <g>
+        <line x1="${point.x.toFixed(1)}" y1="${point.y.toFixed(1)}" x2="${labelX.toFixed(1)}" y2="${labelY.toFixed(1)}" stroke="#2BABB3" stroke-width="2" stroke-opacity="0.55"/>
+        <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="13" fill="#2BABB3" stroke="#ffffff" stroke-width="4"/>
+        <text x="${point.x.toFixed(1)}" y="${(point.y + 4).toFixed(1)}" text-anchor="middle" class="snapshot-number">${escapeHtml(overviewMarkerLabel(index))}</text>
+        <text x="${labelX.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="${anchor}" class="snapshot-name">${escapeHtml(entry.dev.name)}</text>
+      </g>
+    `;
+  }).join('');
+
+  return `
+    <div class="export-overview-map">
+      <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Selected project overview snapshot">
+        <defs>
+          <linearGradient id="snapshotBg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#F8FBFC"/>
+            <stop offset="1" stop-color="#EAF3F5"/>
+          </linearGradient>
+          <style>
+            .snapshot-area { fill: #AAB8C4; font-size: 25px; font-weight: 700; opacity: .5; }
+            .snapshot-name { fill: #1A2B4A; font-size: 18px; font-weight: 800; paint-order: stroke; stroke: #fff; stroke-width: 5px; stroke-linejoin: round; }
+            .snapshot-number { fill: #fff; font-size: 13px; font-weight: 900; }
+            .snapshot-caption { fill: #58708D; font-size: 14px; font-weight: 700; }
+          </style>
+        </defs>
+        <rect width="${width}" height="${height}" rx="18" fill="url(#snapshotBg)"/>
+        <g stroke="#D7E5E8" stroke-width="1">
+          <path d="M120 70 L900 470"/>
+          <path d="M80 410 L870 120"/>
+          <path d="M260 40 L820 520"/>
+          <path d="M40 240 L960 250"/>
+          <path d="M500 30 L520 530"/>
+        </g>
+        ${thames ? `<polyline points="${thames}" fill="none" stroke="#B9DFE7" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>` : ''}
+        ${areaLabels}
+        ${markers}
+        <text x="28" y="34" class="snapshot-caption">Selected London Projects Snapshot</text>
+      </svg>
+    </div>
+  `;
+}
+
 function buildExportOverview(entries) {
   const items = entries.map((entry, index) => `
     <div class="export-overview-item">
@@ -4295,67 +4414,10 @@ function buildExportOverview(entries) {
   return `
     <section class="export-overview">
       <h2>项目分布 Overview</h2>
-      <div class="export-overview-map" id="export-overview-map"></div>
+      ${buildExportOverviewSnapshot(entries)}
       <div class="export-overview-list">${items}</div>
     </section>
   `;
-}
-
-function initExportOverviewMap(entries) {
-  const mapEl = document.getElementById('export-overview-map');
-  if (!mapEl || !window.google?.maps) return Promise.resolve();
-  const validEntries = entries.filter(({ dev }) => Number.isFinite(dev.lat) && Number.isFinite(dev.lng));
-  if (!validEntries.length) {
-    mapEl.innerHTML = '<div style="padding:20px;color:#666;">Map locations are not available.</div>';
-    return Promise.resolve();
-  }
-  const overviewMap = new google.maps.Map(mapEl, {
-    center: { lat: 51.5074, lng: -0.1278 },
-    zoom: 11,
-    mapTypeControl: false,
-    streetViewControl: false,
-    fullscreenControl: false,
-    zoomControl: false,
-    clickableIcons: false,
-    gestureHandling: 'none',
-  });
-  const bounds = new google.maps.LatLngBounds();
-  validEntries.forEach((entry, index) => {
-    const position = { lat: entry.dev.lat, lng: entry.dev.lng };
-    bounds.extend(position);
-    new google.maps.Marker({
-      position,
-      map: overviewMap,
-      title: `${index + 1}. ${entry.dev.name}`,
-      label: {
-        text: overviewMarkerLabel(index),
-        color: '#ffffff',
-        fontWeight: '700',
-        fontSize: '12px',
-      },
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 11,
-        fillColor: '#2BABB3',
-        fillOpacity: 1,
-        strokeColor: '#ffffff',
-        strokeWeight: 2,
-      },
-    });
-  });
-  overviewMap.fitBounds(bounds, 48);
-  return new Promise(resolve => {
-    let done = false;
-    const finish = () => {
-      if (done) return;
-      done = true;
-      resolve();
-    };
-    google.maps.event.addListenerOnce(overviewMap, 'idle', () => {
-      setTimeout(finish, 800);
-    });
-    setTimeout(finish, 2200);
-  });
 }
 
 function renderExportReport(data, introText) {
@@ -4415,7 +4477,6 @@ async function confirmExportIntro() {
   modal.setAttribute('aria-hidden', 'true');
   pendingExportData = null;
   report.classList.add('preparing-print');
-  await initExportOverviewMap(exportData.entries);
   await waitForExportImages();
   report.classList.remove('preparing-print');
   window.print();

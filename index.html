@@ -4348,11 +4348,21 @@ function overviewMarkerLabel(index) {
 }
 
 function buildExportOverviewSnapshot(entries) {
-  const validEntries = entries.filter(({ dev }) => Number.isFinite(dev.lat) && Number.isFinite(dev.lng));
-  if (!validEntries.length) {
+  if (!entries.some(({ dev }) => Number.isFinite(dev.lat) && Number.isFinite(dev.lng))) {
     return '<div class="export-overview-map"><div class="export-overview-map-fallback" style="display:flex;">Map locations are not available.</div></div>';
   }
+  if (!window.currentOverviewSnapshotDataUrl) {
+    return '<div class="export-overview-map"><div class="export-overview-map-fallback" style="display:flex;">地图快照正在生成，请稍后重试导出。</div></div>';
+  }
+  return `
+    <div class="export-overview-map">
+      <img src="${window.currentOverviewSnapshotDataUrl}" alt="Selected project overview map">
+    </div>
+  `;
+}
 
+function getOverviewSnapshotModel(entries) {
+  const validEntries = entries.filter(({ dev }) => Number.isFinite(dev.lat) && Number.isFinite(dev.lng));
   const width = 1000;
   const height = 560;
   const padding = 90;
@@ -4387,35 +4397,95 @@ function buildExportOverviewSnapshot(entries) {
   const tileMaxX = Math.floor((topLeft.x + width) / 256);
   const tileMinY = Math.floor(topLeft.y / 256);
   const tileMaxY = Math.floor((topLeft.y + height) / 256);
-  const tiles = [];
+  return { validEntries, width, height, zoom, topLeft, tileMinX, tileMaxX, tileMinY, tileMaxY, latLngToPoint };
+}
+
+function loadSnapshotTile(url) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
+
+function drawRoundedRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+async function renderOverviewSnapshotDataUrl(entries) {
+  const model = getOverviewSnapshotModel(entries);
+  const { validEntries, width, height, zoom, topLeft, tileMinX, tileMaxX, tileMinY, tileMaxY, latLngToPoint } = model;
+  if (!validEntries.length) return '';
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#f4f2ee';
+  ctx.fillRect(0, 0, width, height);
+
+  const tileJobs = [];
   for (let x = tileMinX; x <= tileMaxX; x++) {
     for (let y = tileMinY; y <= tileMaxY; y++) {
-      const left = (x * 256 - topLeft.x) / width * 100;
-      const top = (y * 256 - topLeft.y) / height * 100;
-      tiles.push(`<img src="https://tile.openstreetmap.org/${zoom}/${x}/${y}.png" alt="" style="left:${left.toFixed(3)}%;top:${top.toFixed(3)}%;width:${(256 / width * 100).toFixed(3)}%;height:${(256 / height * 100).toFixed(3)}%;">`);
+      tileJobs.push({ x, y, imgPromise: loadSnapshotTile(`https://tile.openstreetmap.org/${zoom}/${x}/${y}.png`) });
     }
   }
+  const loadedTiles = await Promise.all(tileJobs.map(async job => ({ ...job, img: await job.imgPromise })));
+  loadedTiles.forEach(({ x, y, img }) => {
+    if (!img) return;
+    ctx.drawImage(img, x * 256 - topLeft.x, y * 256 - topLeft.y, 256, 256);
+  });
 
-  const overlays = validEntries.slice(0, 18).map((entry, index) => {
+  ctx.font = '800 20px Arial, sans-serif';
+  ctx.textBaseline = 'middle';
+  validEntries.slice(0, 18).forEach((entry, index) => {
     const point = latLngToPoint(entry.dev.lat, entry.dev.lng, zoom);
-    const left = point.x - topLeft.x;
-    const top = point.y - topLeft.y;
-    const labelLeft = left > width - 210 ? left - 12 : left;
-    const labelTransform = left > width - 210 ? 'translate(-100%, -50%)' : 'translate(12px, -50%)';
-    return `
-      <div class="export-snapshot-marker" style="left:${(left / width * 100).toFixed(3)}%;top:${(top / height * 100).toFixed(3)}%;">${escapeHtml(overviewMarkerLabel(index).slice(0, 1))}</div>
-      <div class="export-snapshot-label" style="left:${(labelLeft / width * 100).toFixed(3)}%;top:${(top / height * 100).toFixed(3)}%;transform:${labelTransform};">${escapeHtml(entry.dev.name)}</div>
-    `;
-  }).join('');
+    const markerX = point.x - topLeft.x;
+    const markerY = point.y - topLeft.y;
+    const label = overviewMarkerLabel(index).slice(0, 1);
+    const name = entry.dev.name;
+    const labelWidth = Math.min(260, ctx.measureText(name).width + 20);
+    const labelX = markerX > width - 260 ? markerX - labelWidth - 18 : markerX + 18;
+    const labelY = Math.max(22, Math.min(height - 22, markerY));
 
-  return `
-    <div class="export-overview-map">
-      <div class="export-tile-snapshot">
-        ${tiles.join('')}
-        ${overlays}
-      </div>
-    </div>
-  `;
+    ctx.fillStyle = 'rgba(255,255,255,0.88)';
+    drawRoundedRect(ctx, labelX, labelY - 15, labelWidth, 30, 6);
+    ctx.fill();
+    ctx.fillStyle = '#214166';
+    ctx.fillText(name, labelX + 10, labelY, labelWidth - 20);
+
+    ctx.beginPath();
+    ctx.arc(markerX, markerY, 15, 0, Math.PI * 2);
+    ctx.fillStyle = '#2BABB3';
+    ctx.fill();
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 13px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, markerX, markerY + 1);
+    ctx.textAlign = 'left';
+    ctx.font = '800 20px Arial, sans-serif';
+  });
+
+  try {
+    return canvas.toDataURL('image/png');
+  } catch (error) {
+    return '';
+  }
 }
 
 function buildExportOverview(entries) {
@@ -4486,8 +4556,9 @@ function closeExportIntroEditor() {
 async function confirmExportIntro() {
   if (!pendingExportData) return;
   const introText = document.getElementById('export-intro-textarea').value.trim();
-  renderExportReport(pendingExportData, introText || pendingExportData.defaultIntro);
   const exportData = pendingExportData;
+  window.currentOverviewSnapshotDataUrl = await renderOverviewSnapshotDataUrl(exportData.entries);
+  renderExportReport(exportData, introText || exportData.defaultIntro);
   const report = document.getElementById('export-report');
   const modal = document.getElementById('export-intro-modal');
   modal.classList.remove('open');

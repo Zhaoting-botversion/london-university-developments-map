@@ -4425,6 +4425,60 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
   ctx.closePath();
 }
 
+function rectsOverlap(a, b, gap = 4) {
+  return !(
+    a.x + a.w + gap < b.x ||
+    b.x + b.w + gap < a.x ||
+    a.y + a.h + gap < b.y ||
+    b.y + b.h + gap < a.y
+  );
+}
+
+function trimCanvasText(ctx, text, maxWidth) {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  let trimmed = text;
+  while (trimmed.length > 3 && ctx.measureText(`${trimmed}...`).width > maxWidth) {
+    trimmed = trimmed.slice(0, -1);
+  }
+  return `${trimmed}...`;
+}
+
+function chooseSnapshotLabelBox(markerX, markerY, labelWidth, labelHeight, placed, mapWidth, mapHeight) {
+  const candidates = [
+    { x: markerX + 22, y: markerY - labelHeight / 2 },
+    { x: markerX - labelWidth - 22, y: markerY - labelHeight / 2 },
+    { x: markerX - labelWidth / 2, y: markerY - labelHeight - 24 },
+    { x: markerX - labelWidth / 2, y: markerY + 24 },
+    { x: markerX + 22, y: markerY - labelHeight - 24 },
+    { x: markerX + 22, y: markerY + 24 },
+    { x: markerX - labelWidth - 22, y: markerY - labelHeight - 24 },
+    { x: markerX - labelWidth - 22, y: markerY + 24 },
+  ];
+
+  for (const candidate of candidates) {
+    const box = {
+      x: Math.max(8, Math.min(mapWidth - labelWidth - 8, candidate.x)),
+      y: Math.max(8, Math.min(mapHeight - labelHeight - 8, candidate.y)),
+      w: labelWidth,
+      h: labelHeight,
+    };
+    if (!placed.some(existing => rectsOverlap(box, existing, 6))) return box;
+  }
+
+  const fallback = {
+    x: Math.max(8, Math.min(mapWidth - labelWidth - 8, markerX + 22)),
+    y: Math.max(8, Math.min(mapHeight - labelHeight - 8, markerY - labelHeight / 2)),
+    w: labelWidth,
+    h: labelHeight,
+  };
+  let attempts = 0;
+  while (placed.some(existing => rectsOverlap(fallback, existing, 6)) && attempts < 12) {
+    fallback.y = Math.max(8, Math.min(mapHeight - labelHeight - 8, fallback.y + labelHeight + 8));
+    attempts++;
+  }
+  return fallback;
+}
+
 async function renderOverviewSnapshotDataUrl(entries) {
   const model = getOverviewSnapshotModel(entries);
   const { validEntries, width, height, zoom, topLeft, tileMinX, tileMaxX, tileMinY, tileMaxY, latLngToPoint } = model;
@@ -4443,29 +4497,67 @@ async function renderOverviewSnapshotDataUrl(entries) {
     }
   }
   const loadedTiles = await Promise.all(tileJobs.map(async job => ({ ...job, img: await job.imgPromise })));
+  ctx.filter = 'grayscale(35%) saturate(55%) brightness(1.08) contrast(0.9)';
   loadedTiles.forEach(({ x, y, img }) => {
     if (!img) return;
     ctx.drawImage(img, x * 256 - topLeft.x, y * 256 - topLeft.y, 256, 256);
   });
+  ctx.filter = 'none';
+  ctx.fillStyle = 'rgba(248, 251, 252, 0.32)';
+  ctx.fillRect(0, 0, width, height);
 
-  ctx.font = '800 20px Arial, sans-serif';
+  const labelFont = '800 17px Arial, sans-serif';
+  const markerFont = '800 13px Arial, sans-serif';
+  const labelHeight = 28;
+  const maxLabelWidth = 235;
+  const placedLabels = [];
+  ctx.font = labelFont;
   ctx.textBaseline = 'middle';
-  validEntries.slice(0, 18).forEach((entry, index) => {
+  const plottedEntries = validEntries.slice(0, 18).map((entry, index) => {
     const point = latLngToPoint(entry.dev.lat, entry.dev.lng, zoom);
-    const markerX = point.x - topLeft.x;
-    const markerY = point.y - topLeft.y;
-    const label = overviewMarkerLabel(index).slice(0, 1);
-    const name = entry.dev.name;
-    const labelWidth = Math.min(260, ctx.measureText(name).width + 20);
-    const labelX = markerX > width - 260 ? markerX - labelWidth - 18 : markerX + 18;
-    const labelY = Math.max(22, Math.min(height - 22, markerY));
+    return {
+      entry,
+      index,
+      markerX: point.x - topLeft.x,
+      markerY: point.y - topLeft.y,
+    };
+  });
 
-    ctx.fillStyle = 'rgba(255,255,255,0.88)';
-    drawRoundedRect(ctx, labelX, labelY - 15, labelWidth, 30, 6);
+  plottedEntries.forEach(item => {
+    const name = trimCanvasText(ctx, item.entry.dev.name, maxLabelWidth - 20);
+    const labelWidth = Math.min(maxLabelWidth, Math.ceil(ctx.measureText(name).width + 20));
+    const box = chooseSnapshotLabelBox(item.markerX, item.markerY, labelWidth, labelHeight, placedLabels, width, height);
+    placedLabels.push(box);
+    item.name = name;
+    item.box = box;
+  });
+
+  plottedEntries.forEach(({ markerX, markerY, name, box }) => {
+    const boxCenterX = box.x + box.w / 2;
+    const boxCenterY = box.y + box.h / 2;
+    const distance = Math.hypot(boxCenterX - markerX, boxCenterY - markerY);
+    if (distance > 34) {
+      ctx.beginPath();
+      ctx.moveTo(markerX, markerY);
+      ctx.lineTo(boxCenterX, boxCenterY);
+      ctx.strokeStyle = 'rgba(43, 171, 179, 0.38)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    drawRoundedRect(ctx, box.x, box.y, box.w, box.h, 6);
     ctx.fill();
+    ctx.strokeStyle = 'rgba(43, 171, 179, 0.28)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
     ctx.fillStyle = '#214166';
-    ctx.fillText(name, labelX + 10, labelY, labelWidth - 20);
+    ctx.font = labelFont;
+    ctx.textAlign = 'left';
+    ctx.fillText(name, box.x + 10, box.y + box.h / 2);
+  });
 
+  plottedEntries.forEach(({ markerX, markerY, index }) => {
     ctx.beginPath();
     ctx.arc(markerX, markerY, 15, 0, Math.PI * 2);
     ctx.fillStyle = '#2BABB3';
@@ -4474,11 +4566,10 @@ async function renderOverviewSnapshotDataUrl(entries) {
     ctx.strokeStyle = '#ffffff';
     ctx.stroke();
     ctx.fillStyle = '#ffffff';
-    ctx.font = '800 13px Arial, sans-serif';
+    ctx.font = markerFont;
     ctx.textAlign = 'center';
-    ctx.fillText(label, markerX, markerY + 1);
+    ctx.fillText(overviewMarkerLabel(index).slice(0, 1), markerX, markerY + 1);
     ctx.textAlign = 'left';
-    ctx.font = '800 20px Arial, sans-serif';
   });
 
   try {

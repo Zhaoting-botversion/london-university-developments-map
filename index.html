@@ -1022,6 +1022,66 @@
       width: 100%;
       height: 100%;
     }
+    .export-overview-map img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .export-overview-map-fallback {
+      display: none;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      color: #58708D;
+      font-size: 12px;
+      text-align: center;
+      padding: 20px;
+    }
+    .export-tile-snapshot {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #f4f2ee;
+    }
+    .export-tile-snapshot img {
+      position: absolute;
+      width: 256px;
+      height: 256px;
+      max-width: none;
+    }
+    .export-snapshot-marker {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      margin: -11px 0 0 -11px;
+      border-radius: 50%;
+      background: #2BABB3;
+      border: 3px solid #ffffff;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 16px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(26, 43, 74, .24);
+      z-index: 3;
+    }
+    .export-snapshot-label {
+      position: absolute;
+      transform: translate(12px, -50%);
+      z-index: 4;
+      max-width: 170px;
+      color: #214166;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.2;
+      padding: 2px 5px;
+      background: rgba(255, 255, 255, .86);
+      border-radius: 4px;
+      box-shadow: 0 1px 4px rgba(26, 43, 74, .12);
+      white-space: normal;
+    }
     .export-overview-list {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -4287,116 +4347,73 @@ function overviewMarkerLabel(index) {
   return labels[index] || String((index % 9) + 1);
 }
 
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
-
 function buildExportOverviewSnapshot(entries) {
   const validEntries = entries.filter(({ dev }) => Number.isFinite(dev.lat) && Number.isFinite(dev.lng));
   if (!validEntries.length) {
-    return '<div class="export-overview-map"><div style="padding:20px;color:#666;">Map locations are not available.</div></div>';
+    return '<div class="export-overview-map"><div class="export-overview-map-fallback" style="display:flex;">Map locations are not available.</div></div>';
   }
 
   const width = 1000;
   const height = 560;
-  const pad = 54;
-  let minLat = Math.min(...validEntries.map(({ dev }) => dev.lat));
-  let maxLat = Math.max(...validEntries.map(({ dev }) => dev.lat));
-  let minLng = Math.min(...validEntries.map(({ dev }) => dev.lng));
-  let maxLng = Math.max(...validEntries.map(({ dev }) => dev.lng));
+  const padding = 90;
+  const latLngToPoint = (lat, lng, zoom) => {
+    const scale = 256 * Math.pow(2, zoom);
+    const sin = Math.sin(lat * Math.PI / 180);
+    return {
+      x: (lng + 180) / 360 * scale,
+      y: (0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)) * scale,
+    };
+  };
 
-  if (maxLat - minLat < 0.08) {
-    const mid = (maxLat + minLat) / 2;
-    minLat = mid - 0.04;
-    maxLat = mid + 0.04;
+  const minLat = Math.min(...validEntries.map(({ dev }) => dev.lat));
+  const maxLat = Math.max(...validEntries.map(({ dev }) => dev.lat));
+  const minLng = Math.min(...validEntries.map(({ dev }) => dev.lng));
+  const maxLng = Math.max(...validEntries.map(({ dev }) => dev.lng));
+  let zoom = 12;
+  for (let candidate = 15; candidate >= 10; candidate--) {
+    const nw = latLngToPoint(maxLat, minLng, candidate);
+    const se = latLngToPoint(minLat, maxLng, candidate);
+    if (Math.abs(se.x - nw.x) <= width - padding * 2 && Math.abs(se.y - nw.y) <= height - padding * 2) {
+      zoom = candidate;
+      break;
+    }
   }
-  if (maxLng - minLng < 0.12) {
-    const mid = (maxLng + minLng) / 2;
-    minLng = mid - 0.06;
-    maxLng = mid + 0.06;
+
+  const centerLat = (minLat + maxLat) / 2;
+  const centerLng = (minLng + maxLng) / 2;
+  const center = latLngToPoint(centerLat, centerLng, zoom);
+  const topLeft = { x: center.x - width / 2, y: center.y - height / 2 };
+  const tileMinX = Math.floor(topLeft.x / 256);
+  const tileMaxX = Math.floor((topLeft.x + width) / 256);
+  const tileMinY = Math.floor(topLeft.y / 256);
+  const tileMaxY = Math.floor((topLeft.y + height) / 256);
+  const tiles = [];
+  for (let x = tileMinX; x <= tileMaxX; x++) {
+    for (let y = tileMinY; y <= tileMaxY; y++) {
+      const left = (x * 256 - topLeft.x) / width * 100;
+      const top = (y * 256 - topLeft.y) / height * 100;
+      tiles.push(`<img src="https://tile.openstreetmap.org/${zoom}/${x}/${y}.png" alt="" style="left:${left.toFixed(3)}%;top:${top.toFixed(3)}%;width:${(256 / width * 100).toFixed(3)}%;height:${(256 / height * 100).toFixed(3)}%;">`);
+    }
   }
 
-  const latPad = (maxLat - minLat) * 0.22;
-  const lngPad = (maxLng - minLng) * 0.22;
-  minLat = clamp(minLat - latPad, 51.2, 51.72);
-  maxLat = clamp(maxLat + latPad, 51.2, 51.72);
-  minLng = clamp(minLng - lngPad, -0.7, 0.35);
-  maxLng = clamp(maxLng + lngPad, -0.7, 0.35);
-
-  const project = (lat, lng) => ({
-    x: pad + ((lng - minLng) / (maxLng - minLng || 1)) * (width - pad * 2),
-    y: pad + ((maxLat - lat) / (maxLat - minLat || 1)) * (height - pad * 2),
-  });
-
-  const thames = [
-    [51.489, -0.34], [51.492, -0.27], [51.486, -0.20], [51.492, -0.14],
-    [51.503, -0.09], [51.508, -0.03], [51.503, 0.02], [51.493, 0.08],
-    [51.492, 0.16],
-  ].filter(([lat, lng]) => lat >= minLat - 0.05 && lat <= maxLat + 0.05 && lng >= minLng - 0.05 && lng <= maxLng + 0.05)
-    .map(([lat, lng]) => {
-      const point = project(lat, lng);
-      return `${point.x.toFixed(1)},${point.y.toFixed(1)}`;
-    }).join(' ');
-
-  const areaLabels = [
-    ['Paddington', 51.515, -0.176],
-    ['Marylebone', 51.522, -0.151],
-    ['Fitzrovia', 51.52, -0.135],
-    ['Mayfair', 51.51, -0.147],
-    ['Kensington', 51.499, -0.193],
-    ['Nine Elms', 51.48, -0.13],
-    ['Shoreditch', 51.525, -0.08],
-    ['Canary Wharf', 51.505, -0.02],
-    ['London', 51.5074, -0.1278],
-  ].filter(([, lat, lng]) => lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng)
-    .map(([name, lat, lng]) => {
-      const point = project(lat, lng);
-      return `<text x="${point.x.toFixed(1)}" y="${point.y.toFixed(1)}" class="snapshot-area">${escapeHtml(name)}</text>`;
-    }).join('');
-
-  const markers = validEntries.map((entry, index) => {
-    const point = project(entry.dev.lat, entry.dev.lng);
-    const labelX = clamp(point.x + (index % 2 === 0 ? 18 : -18), 72, width - 72);
-    const labelY = clamp(point.y + (index % 3 - 1) * 22 - 16, 36, height - 28);
-    const anchor = labelX < point.x ? 'end' : 'start';
+  const overlays = validEntries.slice(0, 18).map((entry, index) => {
+    const point = latLngToPoint(entry.dev.lat, entry.dev.lng, zoom);
+    const left = point.x - topLeft.x;
+    const top = point.y - topLeft.y;
+    const labelLeft = left > width - 210 ? left - 176 : left;
+    const labelTransform = left > width - 210 ? 'translate(-100%, -50%)' : 'translate(12px, -50%)';
     return `
-      <g>
-        <line x1="${point.x.toFixed(1)}" y1="${point.y.toFixed(1)}" x2="${labelX.toFixed(1)}" y2="${labelY.toFixed(1)}" stroke="#2BABB3" stroke-width="2" stroke-opacity="0.55"/>
-        <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="13" fill="#2BABB3" stroke="#ffffff" stroke-width="4"/>
-        <text x="${point.x.toFixed(1)}" y="${(point.y + 4).toFixed(1)}" text-anchor="middle" class="snapshot-number">${escapeHtml(overviewMarkerLabel(index))}</text>
-        <text x="${labelX.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="${anchor}" class="snapshot-name">${escapeHtml(entry.dev.name)}</text>
-      </g>
+      <div class="export-snapshot-marker" style="left:${(left / width * 100).toFixed(3)}%;top:${(top / height * 100).toFixed(3)}%;">${escapeHtml(overviewMarkerLabel(index).slice(0, 1))}</div>
+      <div class="export-snapshot-label" style="left:${(labelLeft / width * 100).toFixed(3)}%;top:${(top / height * 100).toFixed(3)}%;transform:${labelTransform};">${escapeHtml(entry.dev.name)}</div>
     `;
   }).join('');
 
   return `
     <div class="export-overview-map">
-      <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Selected project overview snapshot">
-        <defs>
-          <linearGradient id="snapshotBg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#F8FBFC"/>
-            <stop offset="1" stop-color="#EAF3F5"/>
-          </linearGradient>
-          <style>
-            .snapshot-area { fill: #AAB8C4; font-size: 25px; font-weight: 700; opacity: .5; }
-            .snapshot-name { fill: #1A2B4A; font-size: 18px; font-weight: 800; paint-order: stroke; stroke: #fff; stroke-width: 5px; stroke-linejoin: round; }
-            .snapshot-number { fill: #fff; font-size: 13px; font-weight: 900; }
-            .snapshot-caption { fill: #58708D; font-size: 14px; font-weight: 700; }
-          </style>
-        </defs>
-        <rect width="${width}" height="${height}" rx="18" fill="url(#snapshotBg)"/>
-        <g stroke="#D7E5E8" stroke-width="1">
-          <path d="M120 70 L900 470"/>
-          <path d="M80 410 L870 120"/>
-          <path d="M260 40 L820 520"/>
-          <path d="M40 240 L960 250"/>
-          <path d="M500 30 L520 530"/>
-        </g>
-        ${thames ? `<polyline points="${thames}" fill="none" stroke="#B9DFE7" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>` : ''}
-        ${areaLabels}
-        ${markers}
-        <text x="28" y="34" class="snapshot-caption">Selected London Projects Snapshot</text>
-      </svg>
+      <div class="export-tile-snapshot">
+        ${tiles.join('')}
+        ${overlays}
+      </div>
     </div>
   `;
 }

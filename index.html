@@ -4400,7 +4400,7 @@ function buildExportOverviewSnapshot(entries) {
     const point = latLngToPoint(entry.dev.lat, entry.dev.lng, zoom);
     const left = point.x - topLeft.x;
     const top = point.y - topLeft.y;
-    const labelLeft = left > width - 210 ? left - 176 : left;
+    const labelLeft = left > width - 210 ? left - 12 : left;
     const labelTransform = left > width - 210 ? 'translate(-100%, -50%)' : 'translate(12px, -50%)';
     return `
       <div class="export-snapshot-marker" style="left:${(left / width * 100).toFixed(3)}%;top:${(top / height * 100).toFixed(3)}%;">${escapeHtml(overviewMarkerLabel(index).slice(0, 1))}</div>

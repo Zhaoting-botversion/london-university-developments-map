@@ -765,6 +765,30 @@
     font-size: 0.78rem;
     line-height: 1.6;
   }
+  .export-intro-field {
+    margin-bottom: 12px;
+  }
+  .export-intro-field label {
+    display: block;
+    margin-bottom: 6px;
+    color: #5b6a8f;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .export-title-input {
+    width: 100%;
+    border: 1px solid #cfd6ea;
+    border-radius: 8px;
+    padding: 9px 11px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+  }
+  .export-title-input:focus {
+    border-color: #8ba4d8;
+    box-shadow: 0 0 0 3px rgba(79, 111, 157, 0.12);
+  }
   .export-intro-textarea {
     width: 100%;
     min-height: 150px;
@@ -1276,7 +1300,14 @@
   <div class="export-intro-dialog" role="dialog" aria-modal="true" aria-labelledby="export-intro-title">
     <h2 id="export-intro-title">推荐导语</h2>
     <p>系统已根据客户需求生成导语，销售可在这里调整措辞；确认后再导出 PDF。</p>
-    <textarea class="export-intro-textarea" id="export-intro-textarea"></textarea>
+    <div class="export-intro-field">
+      <label for="export-title-input">报告标题</label>
+      <input class="export-title-input" id="export-title-input" type="text">
+    </div>
+    <div class="export-intro-field">
+      <label for="export-intro-textarea">推荐导语</label>
+      <textarea class="export-intro-textarea" id="export-intro-textarea"></textarea>
+    </div>
     <div class="export-intro-actions">
       <button class="export-btn" type="button" onclick="closeExportIntroEditor()">取消</button>
       <button class="export-btn" type="button" onclick="confirmExportIntro()">确认并导出PDF</button>
@@ -4628,13 +4659,16 @@ function waitForExportImages() {
   })).then(() => new Promise(resolve => setTimeout(resolve, 250)));
 }
 
-function openExportIntroEditor(introText) {
+function openExportIntroEditor(introText, reportTitle) {
   const modal = document.getElementById('export-intro-modal');
+  const titleInput = document.getElementById('export-title-input');
   const textarea = document.getElementById('export-intro-textarea');
+  titleInput.value = reportTitle || '';
   textarea.value = introText;
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
-  textarea.focus();
+  titleInput.focus();
+  titleInput.select();
 }
 
 function closeExportIntroEditor() {
@@ -4646,8 +4680,10 @@ function closeExportIntroEditor() {
 
 async function confirmExportIntro() {
   if (!pendingExportData) return;
+  const titleText = document.getElementById('export-title-input').value.trim();
   const introText = document.getElementById('export-intro-textarea').value.trim();
   const exportData = pendingExportData;
+  exportData.reportTitle = titleText || exportData.reportTitle;
   window.currentOverviewSnapshotDataUrl = await renderOverviewSnapshotDataUrl(exportData.entries);
   renderExportReport(exportData, introText || exportData.defaultIntro);
   const report = document.getElementById('export-report');
@@ -4684,7 +4720,7 @@ function exportSelectedPdf() {
     reportTitle: `${cleanClientName}伦敦配置推荐方案`,
     cards: buildExportCards(entries),
   };
-  openExportIntroEditor(defaultIntro);
+  openExportIntroEditor(defaultIntro, pendingExportData.reportTitle);
 }
 
 // ── Price filter chips ──

@@ -3872,8 +3872,8 @@ function expandMillionPriceText(text) {
 function normalizePriceDisplay(value) {
   const text = String(value || '').trim().replace(/拢/g, '£');
   if (!text) return '';
-  if (isSoldOut(text)) return 'Sold out';
-  if (isInquiryPrice(text)) return 'POA';
+  if (isSoldOut(text)) return '\u552e\u7f44';
+  if (isInquiryPrice(text)) return '\u4ef7\u683c\u5f85\u8be2';
   return expandMillionPriceText(text);
 }
 
@@ -3981,7 +3981,7 @@ function exportSchoolSummary(entry) {
 
 function exportCommuteSummary(entry) {
   return (entry.uniEntries || [entry])
-    .map(({ uni, dev }) => `${escapeHtml(shortUniName(uni))}: ${escapeHtml(dev.time)} minutes · ${escapeHtml(dev.commute)}`)
+    .map(({ uni, dev }) => `${escapeHtml(shortUniName(uni))}&#65306;${escapeHtml(dev.time)} &#20998;&#38047; &middot; ${escapeHtml(dev.commute)}`)
     .join('<br>');
 }
 
@@ -3991,7 +3991,7 @@ function priceMatrixHtml(dev) {
     .filter(cat => details.prices?.[cat.key])
     .map(cat => {
       const value = normalizePriceDisplay(details.prices[cat.key]);
-      const sold = value === 'Sold out' || value === 'POA';
+      const sold = value === '\u552e\u7f44' || value === '\u4ef7\u683c\u5f85\u8be2';
       return `<div class="price-row">
         <span class="price-row-label">${cat.label}</span>
         <span class="price-row-value ${sold ? 'sold' : ''}">${value}</span>
@@ -4194,8 +4194,8 @@ function exportPriceRows(dev) {
       </tr>
     `)
     .join('');
-  if (!rows) return '<div class="export-meta">Price details are not available yet.</div>';
-  return `<table class="export-price-table"><thead><tr><th>Bedroom</th><th>Price</th></tr></thead><tbody>${rows}</tbody></table>`;
+  if (!rows) return '<div class="export-meta">&#26242;&#26080;&#20215;&#26684;&#26126;&#32454;</div>';
+  return `<table class="export-price-table"><thead><tr><th>&#25143;&#22411;</th><th>&#20215;&#26684;</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function formatBudgetForIntro(value) {
@@ -4250,13 +4250,13 @@ function exportSelectedPdfLegacy() {
       <section class="export-card">
         <h2>${index + 1}. ${escapeHtml(dev.name)}</h2>
         <div class="export-grid">
-          <div class="export-label">School</div><div>${escapeHtml(uni.name)}</div>
-          <div class="export-label">Commute</div><div>${escapeHtml(dev.time)} minutes · ${escapeHtml(dev.commute)}</div>
-          <div class="export-label">Area</div><div>${escapeHtml(dev.area)}</div>
-          <div class="export-label">Address</div><div>${escapeHtml(dev.address)}</div>
-          <div class="export-label">Developer</div><div>${escapeHtml(dev.developer || 'N/A')}</div>
-          <div class="export-label">Completion</div><div>${escapeHtml(dev.ready || 'N/A')}</div>
-          <div class="export-label">Beds</div><div>${escapeHtml(dev.beds || 'N/A')}</div>
+          <div class="export-label">&#23398;&#26657;</div><div>${escapeHtml(uni.name)}</div>
+          <div class="export-label">&#36890;&#21220;</div><div>${escapeHtml(dev.time)} &#20998;&#38047; &middot; ${escapeHtml(dev.commute)}</div>
+          <div class="export-label">&#21306;&#22495;</div><div>${escapeHtml(dev.area)}</div>
+          <div class="export-label">&#22320;&#22336;</div><div>${escapeHtml(dev.address)}</div>
+          <div class="export-label">&#24320;&#21457;&#21830;</div><div>${escapeHtml(dev.developer || '\u6682\u65e0')}</div>
+          <div class="export-label">&#25910;&#25151;&#26102;&#38388;</div><div>${escapeHtml(dev.ready || '\u6682\u65e0')}</div>
+          <div class="export-label">&#25143;&#22411;&#33539;&#22260;</div><div>${escapeHtml(dev.beds || '\u6682\u65e0')}</div>
         </div>
         ${exportPriceRows(dev)}
       </section>
@@ -4328,13 +4328,13 @@ function buildExportCards(entries) {
       <section class="export-card">
         <h2>${index + 1}. ${escapeHtml(dev.name)}</h2>
         <div class="export-grid">
-          <div class="export-label">School</div><div>${escapeHtml(exportSchoolSummary(entry))}</div>
-          <div class="export-label">Commute</div><div>${exportCommuteSummary(entry)}</div>
-          <div class="export-label">Area</div><div>${escapeHtml(dev.area)}</div>
-          <div class="export-label">Address</div><div>${escapeHtml(dev.address)}</div>
-          <div class="export-label">Developer</div><div>${escapeHtml(dev.developer || 'N/A')}</div>
-          <div class="export-label">Completion</div><div>${escapeHtml(dev.ready || 'N/A')}</div>
-          <div class="export-label">Beds</div><div>${escapeHtml(dev.beds || 'N/A')}</div>
+          <div class="export-label">&#23398;&#26657;</div><div>${escapeHtml(exportSchoolSummary(entry))}</div>
+          <div class="export-label">&#36890;&#21220;</div><div>${exportCommuteSummary(entry)}</div>
+          <div class="export-label">&#21306;&#22495;</div><div>${escapeHtml(dev.area)}</div>
+          <div class="export-label">&#22320;&#22336;</div><div>${escapeHtml(dev.address)}</div>
+          <div class="export-label">&#24320;&#21457;&#21830;</div><div>${escapeHtml(dev.developer || '\u6682\u65e0')}</div>
+          <div class="export-label">&#25910;&#25151;&#26102;&#38388;</div><div>${escapeHtml(dev.ready || '\u6682\u65e0')}</div>
+          <div class="export-label">&#25143;&#22411;&#33539;&#22260;</div><div>${escapeHtml(dev.beds || '\u6682\u65e0')}</div>
         </div>
         ${exportPriceRows(dev)}
       </section>

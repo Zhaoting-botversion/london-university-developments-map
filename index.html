@@ -4226,7 +4226,7 @@ function getRequirementIntro(clientName, entries) {
   return `${clientName}您好，根据您的需求：${bedText}、${budgetLabel}预算，以及在${schoolNames}周边${areaLabel !== '关注区域' ? `、${areaLabel}` : ''}的位置，我们已为您全面扫描最新楼盘信息，并筛选出以下符合需求的项目，供您参考。`;
 }
 
-function exportSelectedPdf() {
+function exportSelectedPdfLegacy() {
   const entries = selectedEntries();
   if (!entries.length) return;
   const savedClientName = document.getElementById('client-name-input')?.value?.trim() || '';

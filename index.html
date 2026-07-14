@@ -3817,6 +3817,66 @@ let mapLoaded = false;
 let dataLoaded = true; // data is immediately available from stub
 
 // ============================================================
+// LIGHTWEIGHT USAGE ANALYTICS
+// ============================================================
+// Paste the deployed Google Apps Script Web App URL here when the backend is ready.
+// Example: window.LUDM_ANALYTICS_ENDPOINT = 'https://script.google.com/macros/s/.../exec';
+const ANALYTICS_ENDPOINT = window.LUDM_ANALYTICS_ENDPOINT || '';
+const ANALYTICS_ENABLED = Boolean(ANALYTICS_ENDPOINT);
+const ANALYTICS_SESSION_KEY = 'ludm_analytics_session';
+
+function getAnalyticsSessionId() {
+  try {
+    let sessionId = sessionStorage.getItem(ANALYTICS_SESSION_KEY);
+    if (!sessionId) {
+      sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      sessionStorage.setItem(ANALYTICS_SESSION_KEY, sessionId);
+    }
+    return sessionId;
+  } catch (_) {
+    return 'session-unavailable';
+  }
+}
+
+function analyticsContext() {
+  return {
+    sessionId: getAnalyticsSessionId(),
+    page: location.pathname,
+    query: location.search,
+    selectedSchools: getSelectedUniKeys().join(','),
+    selectedCount: selectedDevelopments.size,
+    visibleCount: currentEntries.length,
+    userAgent: navigator.userAgent,
+    language: navigator.language,
+    viewport: `${window.innerWidth}x${window.innerHeight}`,
+    referrer: document.referrer || '',
+  };
+}
+
+function trackUsage(eventName, details = {}) {
+  if (!ANALYTICS_ENABLED) return;
+  const payload = {
+    event: eventName,
+    timestamp: new Date().toISOString(),
+    ...analyticsContext(),
+    details,
+  };
+  const body = JSON.stringify(payload);
+  try {
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(ANALYTICS_ENDPOINT, new Blob([body], { type: 'text/plain;charset=UTF-8' }));
+      return;
+    }
+  } catch (_) {}
+  fetch(ANALYTICS_ENDPOINT, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+    body,
+  }).catch(() => {});
+}
+
+// ============================================================
 // PRICE BANDS
 // ============================================================
 const PRICE_BANDS = [
@@ -4178,12 +4238,18 @@ function updateSelectionControls() {
 }
 
 function toggleSelectedDevelopment(key) {
+  const willSelect = !selectedDevelopments.has(key);
   selectedDevelopments.has(key) ? selectedDevelopments.delete(key) : selectedDevelopments.add(key);
+  trackUsage(willSelect ? 'development_selected' : 'development_unselected', {
+    developmentKey: key,
+    selectedCount: selectedDevelopments.size,
+  });
   renderSidebar();
   if (mapLoaded) applyFilter();
 }
 
 function clearSelectedDevelopments() {
+  trackUsage('selection_cleared', { selectedCount: selectedDevelopments.size });
   selectedDevelopments.clear();
   renderSidebar();
   if (mapLoaded) applyFilter();
@@ -4699,6 +4765,11 @@ async function confirmExportIntro() {
   const introText = document.getElementById('export-intro-textarea').value.trim();
   const exportData = pendingExportData;
   exportData.reportTitle = titleText || exportData.reportTitle;
+  trackUsage('pdf_export_confirmed', {
+    selectedCount: exportData.entries.length,
+    schools: [...new Set(exportData.entries.flatMap(entry => entry.uniEntries?.map(uniEntry => shortUniName(uniEntry.uni)) || [shortUniName(entry.uni)]))],
+    developments: exportData.entries.map(entry => entry.dev.name),
+  });
   window.currentOverviewSnapshotDataUrl = await renderOverviewSnapshotDataUrl(exportData.entries);
   renderExportReport(exportData, introText || exportData.defaultIntro);
   const report = document.getElementById('export-report');
@@ -4715,6 +4786,10 @@ async function confirmExportIntro() {
 function exportSelectedPdf() {
   const entries = selectedEntries();
   if (!entries.length) return;
+  trackUsage('pdf_export_started', {
+    selectedCount: entries.length,
+    developments: entries.map(entry => entry.dev.name),
+  });
   const savedClientName = document.getElementById('client-name-input')?.value?.trim() || '';
   const cleanClientName = savedClientName || '客户';
   const clientInput = document.getElementById('client-name-input');
@@ -4834,6 +4909,10 @@ function renderStatusChips() {
 
 function toggleBand(bandIdx) {
   activeBands.has(bandIdx) ? activeBands.delete(bandIdx) : activeBands.add(bandIdx);
+  trackUsage('filter_price_toggled', {
+    band: PRICE_BANDS[bandIdx]?.label || String(bandIdx),
+    activeBands: [...activeBands].map(idx => PRICE_BANDS[idx]?.label || String(idx)),
+  });
   document.getElementById('filter-reset').style.display = activeBands.size > 0 ? 'block' : 'none';
   renderFilterChips();
   applyFilter();
@@ -4841,6 +4920,10 @@ function toggleBand(bandIdx) {
 
 function toggleBed(key) {
   activeBeds.has(key) ? activeBeds.delete(key) : activeBeds.add(key);
+  trackUsage('filter_bedroom_toggled', {
+    bedroom: key,
+    activeBedrooms: [...activeBeds],
+  });
   document.getElementById('bed-reset').style.display = activeBeds.size > 0 ? 'block' : 'none';
   renderBedChips();
   renderFilterChips();
@@ -4849,6 +4932,10 @@ function toggleBed(key) {
 
 function toggleArea(area) {
   activeAreas.has(area) ? activeAreas.delete(area) : activeAreas.add(area);
+  trackUsage('filter_area_toggled', {
+    area,
+    activeAreas: [...activeAreas],
+  });
   document.getElementById('area-reset').style.display = activeAreas.size > 0 || areaSearchQuery ? 'block' : 'none';
   renderAreaChips();
   applyFilter();
@@ -4856,6 +4943,10 @@ function toggleArea(area) {
 
 function toggleStatus(key) {
   activeStatuses.has(key) ? activeStatuses.delete(key) : activeStatuses.add(key);
+  trackUsage('filter_status_toggled', {
+    status: key,
+    activeStatuses: [...activeStatuses],
+  });
   document.getElementById('status-reset').style.display = activeStatuses.size > 0 ? 'block' : 'none';
   renderStatusChips();
   applyFilter();
@@ -4863,6 +4954,10 @@ function toggleStatus(key) {
 
 function toggleFilterPanel(panelId) {
   document.getElementById(panelId).classList.toggle('collapsed');
+  trackUsage('filter_panel_toggled', {
+    panelId,
+    collapsed: document.getElementById(panelId).classList.contains('collapsed'),
+  });
 }
 
 function setAreaSearch(value) {
@@ -4881,10 +4976,18 @@ function applyClientRequirements() {
     bedKey: document.getElementById('client-bed-select')?.value || '',
     areaQuery: String(document.getElementById('client-area-input')?.value || '').trim(),
   };
+  trackUsage('client_requirements_applied', {
+    hasBudget: clientRequirements.budgetMax !== null,
+    budgetMax: clientRequirements.budgetMax,
+    bedKey: clientRequirements.bedKey,
+    hasAreaQuery: Boolean(clientRequirements.areaQuery),
+    areaQuery: clientRequirements.areaQuery,
+  });
   applyFilter();
 }
 
 function resetClientRequirements() {
+  trackUsage('client_requirements_cleared');
   document.getElementById('client-budget-input').value = '';
   document.getElementById('client-bed-select').value = '';
   document.getElementById('client-area-input').value = '';
@@ -4892,6 +4995,7 @@ function resetClientRequirements() {
 }
 
 function clearPriceFilters() {
+  if (activeBands.size) trackUsage('filter_price_cleared', { activeBands: [...activeBands] });
   activeBands.clear();
   document.getElementById('filter-reset').style.display = 'none';
   renderFilterChips();
@@ -4899,6 +5003,7 @@ function clearPriceFilters() {
 }
 
 function clearBedFilters() {
+  if (activeBeds.size) trackUsage('filter_bedroom_cleared', { activeBedrooms: [...activeBeds] });
   activeBeds.clear();
   document.getElementById('bed-reset').style.display = 'none';
   renderBedChips();
@@ -4907,6 +5012,7 @@ function clearBedFilters() {
 }
 
 function clearAreaFilters() {
+  if (activeAreas.size || areaSearchQuery) trackUsage('filter_area_cleared', { activeAreas: [...activeAreas], areaSearchQuery });
   activeAreas.clear();
   areaSearchQuery = '';
   document.getElementById('area-search-input').value = '';
@@ -4916,6 +5022,7 @@ function clearAreaFilters() {
 }
 
 function clearStatusFilters() {
+  if (activeStatuses.size) trackUsage('filter_status_cleared', { activeStatuses: [...activeStatuses] });
   activeStatuses.clear();
   document.getElementById('status-reset').style.display = 'none';
   renderStatusChips();
@@ -5192,6 +5299,12 @@ function parseTransportSteps(commute) {
 
 function showInfoWindow(marker, dev, uniKey) {
   const uni = UNIVERSITIES[uniKey];
+  trackUsage('development_detail_opened', {
+    development: dev.name,
+    area: dev.area,
+    school: shortUniName(uni),
+    commuteMinutes: dev.time,
+  });
   const color = timeColor(dev.time);
   const transportHtml = parseTransportSteps(dev.commute);
   const devLabel = dev.developer ? `<div class="iw-row"><strong>Developer:</strong>${dev.developer}</div>` : '';
@@ -5234,12 +5347,17 @@ function timeColor(mins) {
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const uniKey = tab.dataset.uni;
+    const wasActive = activeUnis.has(uniKey);
     if (activeUnis.has(uniKey) && activeUnis.size > 1) {
       activeUnis.delete(uniKey);
     } else {
       activeUnis.add(uniKey);
       activeUni = uniKey;
     }
+    trackUsage(wasActive && !activeUnis.has(uniKey) ? 'school_unselected' : 'school_selected', {
+      schoolKey: uniKey,
+      activeSchools: getSelectedUniKeys(),
+    });
     syncTabState();
     renderSidebar();
     if (mapLoaded) {
@@ -5259,6 +5377,10 @@ function syncTabState() {
 enrichUniversityPrices();
 syncTabState();
 renderSidebar();
+trackUsage('page_view', {
+  schools: getSelectedUniKeys(),
+  developmentCount: currentEntries.length,
+});
 
 // ============================================================
 // DARK MAP STYLE

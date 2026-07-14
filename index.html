@@ -1422,6 +1422,7 @@ const COORD_DB = {
   'The Newton':{'lat':51.5136,'lng':-0.1898},
   "King's Road Park":{'lat':51.4726,'lng':-0.1864},
   'Chelsea Waterfront':{'lat':51.4762,'lng':-0.1817},
+  'Fifty Brook Green':{'lat':51.4959,'lng':-0.2187},
   // CCA / Chelsea
   'Westminster Tower':{'lat':51.4960,'lng':-0.1195},
   // CSM / King's Cross
@@ -2751,6 +2752,19 @@ const PRICE_LOOKUP = {
       "payment": "Exchange within 28 days of reservation; 10% deposit less reservation deposit payable upon exchange; balance 90% payable upon completion",
       "source": "Water Gardens Pricelist 13th July 2026.pdf; Powerhouse Pricelist 13th July 2026.pdf; Powerhouse Penthouse Pricelist 13th July 2026.pdf; Tower West Pricelist 13th July 2026.pdf; Tower East Pricelist 13th July 2026.pdf"
     },
+    "Fifty Brook Green": {
+      "prices": {
+        "studio": "售罄",
+        "one": "£1,500,000",
+        "two": "£1,520,000-£2,750,000",
+        "three": "£2,380,000-£3,150,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "£5,000 reservation fee",
+      "payment": "Exchange deposit is 10% of purchase price less reservation fee payable within 21 days of reservation; 90% balance payable on completion",
+      "source": "Fifty Brook Green - Price List - 13.07.2026.pdf"
+    },
     "One Kensington Gardens": {
       "prices": {
         "studio": "",
@@ -3715,6 +3729,7 @@ const UNIVERSITIES_STUB = {
       { name:"The Broadway", area:"Westminster", address:"1-9 Broadway, London SW1H", time:27, commute:"Bus 52", developer:"Northacre", price:"£1,650,000", beds:"1–4", ready:"现房", lat:51.4994, lng:-0.1326 },
       { name:"King\'s Road Park", area:"Fulham", address:"Sands End Lane, London SW6", time:27, commute:"Fulham Broadway → District → South Kensington", developer:"St William (Berkeley)", price:"£750,000", beds:"1–4", ready:"现房/2027", lat:51.4726, lng:-0.1864 },
       { name:"Opus", area:"Southwark", address:"260 Blackfriars Rd, London SE1 9AX", time:27, commute:"Blackfriars → District → South Kensington", developer:"Native Land", price:"£775,000", beds:"0–3", ready:"2027 Q1", lat:51.5013, lng:-0.1048 },
+      { name:"Fifty Brook Green", area:"Brook Green", address:"50 Brook Grn, London W6 7BJ", time:27, commute:"Barons Court → District Line → South Kensington", developer:"London Square", price:"£1,500,000", beds:"1–3", ready:"2026 Q4/2027 Q1-Q2", lat:51.4959, lng:-0.2187 },
       { name:"Chelsea Waterfront", area:"Chelsea", address:"Waterfront Dr, London SW10 0QD", time:33, commute:"Bus 345", developer:"CK Asset Holdings", price:"£1,070,000", beds:"0–6", ready:"现房/2026 Q3", lat:51.4762, lng:-0.1817 },
     ]
   },

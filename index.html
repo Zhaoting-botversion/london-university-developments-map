@@ -1424,6 +1424,7 @@ const COORD_DB = {
   'Chelsea Waterfront':{'lat':51.4762,'lng':-0.1817},
   'Fifty Brook Green':{'lat':51.4959,'lng':-0.2187},
   'Hurlingham Waterfront':{'lat':51.4692,'lng':-0.1877},
+  'Wandsworth Mills':{'lat':51.4590,'lng':-0.1920},
   // CCA / Chelsea
   'Westminster Tower':{'lat':51.4960,'lng':-0.1195},
   // CSM / King's Cross
@@ -2949,6 +2950,19 @@ const PRICE_LOOKUP = {
       "reservation": "£10,000",
       "payment": "20% exchange deposit less reservation fee within 21 days of reservation; 5% payable 6 months from exchange; 75% balance on completion",
       "source": "Westminster Tower Price List - 15.06.2026.pdf"
+    },
+    "Wandsworth Mills": {
+      "prices": {
+        "studio": "£562,000-£620,000",
+        "one": "£593,000-£667,000",
+        "two": "£952,000-£1,241,000",
+        "three": "£1,341,000-£1,722,000",
+        "fourPlus": "售罄",
+        "penthouse": "售罄"
+      },
+      "reservation": "£5,000 reservation fee for homes up to £1,000,000; £10,000 reservation fee for homes over £1,000,000",
+      "payment": "Exchange within 21 days on 10% of the purchase price minus reservation fee already paid; further 10% payable 12 months after exchange; further 5% payable 18 months after exchange; balance payable on completion",
+      "source": "CN - WM_ The Artisan Price list - 12.07.26.pdf"
     }
   },
   "CSM": {
@@ -3764,6 +3778,7 @@ const UNIVERSITIES_STUB = {
       { name:"The Bolsover", area:"Fitzrovia", address:"3-8 Bolsover St, London W1W 6AB", time:25, commute:"Oxford Circus → Victoria → Pimlico", developer:"A\'AAYAN Real Estate", price:"£975,000", beds:"0–3", ready:"2027 Q2", lat:51.5224, lng:-0.1443 },
       { name:"W1 Place (Great Portland)", area:"Fitzrovia", address:"204 Great Portland St, London W1W", time:26, commute:"Warren Street → Victoria → Pimlico", developer:"Concord London", price:"£1,425,000", beds:"1–2", ready:"现房", lat:51.5219, lng:-0.1434 },
       { name:"Graphite Square", area:"Vauxhall", address:"85 Worgan St, London SE11", time:19, commute:"Bus 87", developer:"Third.i", price:"£575,000", beds:"1–3", ready:"现房", lat:51.4870, lng:-0.1165 },
+      { name:"Wandsworth Mills", area:"Wandsworth", address:"11 Armoury Way, London SW18 1TH", time:29, commute:"Walk → Wandsworth Town → South Western Railway → Vauxhall → Walk", developer:"Berkeley (St George)", price:"£562,000", beds:"0–3", ready:"2027 Q1-2028 Q2", lat:51.4590, lng:-0.1920 },
       { name:"Trillum", area:"Marylebone", address:"285a Edgware Rd, London W2 1BY", time:29, commute:"Bus 36", developer:"Berkeley (St Edward)", price:"£1,016,000", beds:"0–3", ready:"2028 Q3", lat:51.5228, lng:-0.1691 },
       { name:"100 George Street", area:"Marylebone", address:"100 George St, London W1U", time:25, commute:"Bus 2", developer:"Derwent London", price:"£1,850,000", beds:"1–4", ready:"现房", lat:51.5185, lng:-0.1504 },
       { name:"Marylebone Mansions", area:"Marylebone", address:"1 Molyneux Street, London W1H 5HU", time:28, commute:"Bus 36", developer:"Elliott House", price:"£949,000", beds:"1–2", ready:"现房", lat:51.5193, lng:-0.1628 },

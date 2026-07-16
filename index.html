@@ -982,6 +982,37 @@
       font-weight: 700;
       max-width: 505px;
     }
+    .export-value-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+      max-width: 505px;
+    }
+    .export-value-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 54px;
+      padding: 8px 7px;
+      border-top: 1px solid rgba(255,255,255,0.22);
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.045);
+    }
+    .export-value-icon {
+      flex: 0 0 18px;
+      color: #C9A84C;
+      font-size: 15px;
+      line-height: 1;
+      text-align: center;
+    }
+    .export-value-text {
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1.45;
+      letter-spacing: 0.02em;
+    }
     .export-section-title {
       color: #1A2B4A;
       font-size: 18px;
@@ -4503,7 +4534,12 @@ function buildCompanyCover(data) {
           <div class="export-market-card"><strong>日本</strong><span>2020年进驻<br>累计成交 143 单<br>成交金额 12.1 亿</span></div>
           <div class="export-market-card"><strong>香港</strong><span>2024年开始筹备<br>亚太财富新支点<br>即将启航</span></div>
         </div>
-        <div class="export-cover-note">服务数百位高净值客户跨境置业需求。</div>
+        <div class="export-value-grid">
+          <div class="export-value-item"><span class="export-value-icon">◎</span><span class="export-value-text">洞察全球周期<br>掌握最佳时机</span></div>
+          <div class="export-value-item"><span class="export-value-icon">✧</span><span class="export-value-text">直连本地供应<br>锁定最优选择</span></div>
+          <div class="export-value-item"><span class="export-value-icon">⌬</span><span class="export-value-text">一站式托付<br>全程省心无忧</span></div>
+          <div class="export-value-item"><span class="export-value-icon">◒</span><span class="export-value-text">专为跨境设计<br>全球服务如一</span></div>
+        </div>
       </div>
     </section>
   `;

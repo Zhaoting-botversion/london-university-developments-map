@@ -3609,6 +3609,34 @@ const PRICE_LOOKUP = {
   }
 };
 
+const SERVICE_CHARGE_LOOKUP = {
+  "Aspen at Consort Place": "£8,067；£8,021；£8,049；另11种",
+  "Bow Green": "4.85",
+  "Camden Goods Yard": "6.5",
+  "Chelsea Waterfront": "11",
+  "DAMAC Tower": "12.16",
+  "Hertford Mill": "£3506.32；£2895.06；£2745.06；另4种",
+  "Hurlingham Waterfront": "6.75",
+  "King's Road Park": "5.9",
+  "London Dock": "£ 6.7-7",
+  "One Bishopsgate Plaza": "12.5",
+  "Opus": "9.1",
+  "Postmark": "£ 6.8-8.7",
+  "Postmark London": "£ 6.8-8.7",
+  "Regent's View": "4.7",
+  "River Park Tower": "9.49",
+  "Rivermark": "£4452.00；£2553.77；£3120.83；另4种",
+  "South Quay Plaza": "9.53",
+  "The Bryanston": "24.74",
+  "The Stage": "12.54",
+  "Wandsworth Mills": "£6.5-6.8",
+  "White City Living": "6.99",
+};
+
+function getServiceCharge(dev) {
+  return dev?.serviceCharge || SERVICE_CHARGE_LOOKUP[dev?.name] || '';
+}
+
 function csvToRows(text) {
   const rows = [];
   let i = 0;
@@ -4213,6 +4241,12 @@ function exportCommuteSummary(entry) {
     .join('<br>');
 }
 
+function exportServiceChargeRow(dev) {
+  const serviceCharge = getServiceCharge(dev);
+  if (!serviceCharge) return '';
+  return `<div class="export-label">&#29289;&#19994;&#36153;</div><div>${escapeHtml(serviceCharge)}</div>`;
+}
+
 function priceMatrixHtml(dev) {
   const details = dev.priceDetails || buildFallbackPriceDetails(dev);
   const rows = BED_CATEGORIES
@@ -4491,6 +4525,7 @@ function exportSelectedPdfLegacy() {
           <div class="export-label">&#24320;&#21457;&#21830;</div><div>${escapeHtml(dev.developer || '\u6682\u65e0')}</div>
           <div class="export-label">&#25910;&#25151;&#26102;&#38388;</div><div>${escapeHtml(dev.ready || '\u6682\u65e0')}</div>
           <div class="export-label">&#25143;&#22411;&#33539;&#22260;</div><div>${escapeHtml(dev.beds || '\u6682\u65e0')}</div>
+          ${exportServiceChargeRow(dev)}
         </div>
         ${exportPriceRows(dev)}
       </section>
@@ -5607,6 +5642,8 @@ function showInfoWindow(marker, dev, uniKey) {
   const color = timeColor(dev.time);
   const transportHtml = parseTransportSteps(dev.commute);
   const devLabel = dev.developer ? `<div class="iw-row"><strong>Developer:</strong>${dev.developer}</div>` : '';
+  const serviceCharge = getServiceCharge(dev);
+  const serviceChargeLabel = serviceCharge ? `<div class="iw-row"><strong>物业费:</strong>${escapeHtml(serviceCharge)}</div>` : '';
   const html = `
     <div class="iw-content">
       <div class="iw-name">${dev.name}</div>
@@ -5622,6 +5659,7 @@ function showInfoWindow(marker, dev, uniKey) {
       ${devLabel}
       <div class="iw-row"><strong>Completion:</strong>${dev.ready}</div>
       <div class="iw-row"><strong>Beds:</strong>${dev.beds}</div>
+      ${serviceChargeLabel}
       <div class="iw-section-label">Bedroom pricing</div>
       ${priceMatrixHtml(dev)}
       ${priceNotesHtml(dev)}

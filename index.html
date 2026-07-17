@@ -1185,6 +1185,73 @@
       margin-bottom: 12px;
       padding-top: 2mm;
     }
+    .export-process {
+      page-break-before: always;
+      padding-top: 4mm;
+    }
+    .export-process h2 {
+      color: #1A2B4A;
+      font-size: 24px;
+      margin: 0 0 4px;
+      font-weight: 900;
+    }
+    .export-process-subtitle {
+      color: #6b7394;
+      font-size: 11px;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+    .export-process-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .export-process-step {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 10px;
+      align-items: stretch;
+      page-break-inside: avoid;
+    }
+    .export-process-no {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #2BABB3;
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 14px;
+      border: 3px solid #d8f1f3;
+      margin-top: 7px;
+    }
+    .export-process-body {
+      border-radius: 12px;
+      border: 1px solid rgba(43,171,179,0.24);
+      background: #f8fbfc;
+      padding: 9px 12px 10px;
+    }
+    .export-process-title {
+      color: #1A2B4A;
+      font-size: 14px;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+    .export-process-text {
+      color: #34435f;
+      font-size: 10px;
+      line-height: 1.55;
+    }
+    .export-process-note {
+      color: #9b6d20;
+      font-size: 9px;
+      margin-top: 3px;
+      line-height: 1.45;
+    }
     .export-card h2 {
       font-size: 16px;
       margin: 0 0 6px;
@@ -4885,6 +4952,62 @@ function buildExportOverview(entries) {
   `;
 }
 
+function buildUkPurchaseProcess() {
+  const steps = [
+    {
+      title: '预定',
+      text: '与中介或销售楼部签订预定表，并支付预定费。通常来说，预定后开发商会给您 28 天时间准备交换合同。',
+      note: '详见第二页预定前后需要注意的事项。'
+    },
+    {
+      title: '委托',
+      text: '委托律师和贷款顾问。律师开始处理 Legal Pack，贷款顾问处理 Mortgage Application。'
+    },
+    {
+      title: '身份验证 & 资金来源审查',
+      text: '律师和贷款顾问通常会要求您进行身份验证，并提供资金来源审查资料。'
+    },
+    {
+      title: '调查',
+      text: '开发商会提供开发项目调查结果。如果没有，律师通常会向您说明是否需要下单独调查。'
+    },
+    {
+      title: '阅读报告 & 咨询律师',
+      text: '律师会给您发送一份购房报告，包含开发项目情况、合同条款、相关证书和产权审查意见。您需要阅读报告，如有问题，应及时咨询律师。'
+    },
+    {
+      title: '交换合同',
+      text: '如您对合同和交易安排没有疑问，即可与律师商讨安排交换合同事宜。律师会在收到定金和签字合同后，与开发商律师交换合同。'
+    },
+    {
+      title: '验房 & 完成交易',
+      text: '房子建造完毕后，开发商律师会送达 Completion Notice，通常约十个工作日完成交易。若无法在截止日前完成，开发商可能发出通知，严重时有权利撤销合约。'
+    },
+    {
+      title: '产权注册',
+      text: '完成交易后，律师会为您递交印花税，并向土地局安排产权注册。新房注册通常需要 1 至 2 年左右时间。'
+    },
+  ];
+  return `
+    <section class="export-process">
+      <h2>英国房屋交易流程</h2>
+      <div class="export-process-subtitle">Newbuild Purchase Process</div>
+      <div class="export-process-list">
+        ${steps.map((step, index) => `
+          <div class="export-process-step">
+            <div class="export-process-no">${index + 1}</div>
+            <div class="export-process-body">
+              <div class="export-process-title">${index + 1}. ${escapeHtml(step.title)}</div>
+              <div class="export-process-text">${escapeHtml(step.text)}</div>
+              ${step.note ? `<div class="export-process-note">${escapeHtml(step.note)}</div>` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+  `;
+}
+
 function renderExportReport(data, introText) {
   const logoSrc = new URL('assets/landma-logo.png', window.location.href).href;
   document.getElementById('export-report').innerHTML = `
@@ -4900,6 +5023,7 @@ function renderExportReport(data, introText) {
     <div class="export-intro">${escapeHtml(introText)}</div>
     ${buildExportOverview(data.entries)}
     ${data.cards}
+    ${buildUkPurchaseProcess()}
   `;
 }
 

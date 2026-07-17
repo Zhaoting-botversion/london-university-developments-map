@@ -4564,8 +4564,34 @@ function buildExportOverviewSnapshot(entries) {
   `;
 }
 
+function getOverviewSchools(entries) {
+  const schools = new Map();
+  entries.forEach(entry => {
+    const uniEntries = entry.uniEntries && entry.uniEntries.length ? entry.uniEntries : [entry];
+    uniEntries.forEach(({ uni, uniKey }) => {
+      if (!uni || !Number.isFinite(uni.lat) || !Number.isFinite(uni.lng)) return;
+      const key = uniKey || uni.name;
+      if (!schools.has(key)) {
+        schools.set(key, {
+          key,
+          name: shortUniName(uni),
+          lat: uni.lat,
+          lng: uni.lng,
+          color: uni.bgColor || uni.color || '#1A2B4A',
+        });
+      }
+    });
+  });
+  return [...schools.values()];
+}
+
 function getOverviewSnapshotModel(entries) {
   const validEntries = entries.filter(({ dev }) => Number.isFinite(dev.lat) && Number.isFinite(dev.lng));
+  const schools = getOverviewSchools(entries);
+  const boundsPoints = [
+    ...validEntries.map(({ dev }) => ({ lat: dev.lat, lng: dev.lng })),
+    ...schools.map(school => ({ lat: school.lat, lng: school.lng })),
+  ];
   const width = 1000;
   const height = 560;
   const padding = 90;
@@ -4578,10 +4604,10 @@ function getOverviewSnapshotModel(entries) {
     };
   };
 
-  const minLat = Math.min(...validEntries.map(({ dev }) => dev.lat));
-  const maxLat = Math.max(...validEntries.map(({ dev }) => dev.lat));
-  const minLng = Math.min(...validEntries.map(({ dev }) => dev.lng));
-  const maxLng = Math.max(...validEntries.map(({ dev }) => dev.lng));
+  const minLat = Math.min(...boundsPoints.map(point => point.lat));
+  const maxLat = Math.max(...boundsPoints.map(point => point.lat));
+  const minLng = Math.min(...boundsPoints.map(point => point.lng));
+  const maxLng = Math.max(...boundsPoints.map(point => point.lng));
   let zoom = 12;
   for (let candidate = 15; candidate >= 10; candidate--) {
     const nw = latLngToPoint(maxLat, minLng, candidate);
@@ -4600,7 +4626,7 @@ function getOverviewSnapshotModel(entries) {
   const tileMaxX = Math.floor((topLeft.x + width) / 256);
   const tileMinY = Math.floor(topLeft.y / 256);
   const tileMaxY = Math.floor((topLeft.y + height) / 256);
-  return { validEntries, width, height, zoom, topLeft, tileMinX, tileMaxX, tileMinY, tileMaxY, latLngToPoint };
+  return { validEntries, schools, width, height, zoom, topLeft, tileMinX, tileMaxX, tileMinY, tileMaxY, latLngToPoint };
 }
 
 function loadSnapshotTile(url) {
@@ -4684,7 +4710,7 @@ function chooseSnapshotLabelBox(markerX, markerY, labelWidth, labelHeight, place
 
 async function renderOverviewSnapshotDataUrl(entries) {
   const model = getOverviewSnapshotModel(entries);
-  const { validEntries, width, height, zoom, topLeft, tileMinX, tileMaxX, tileMinY, tileMaxY, latLngToPoint } = model;
+  const { validEntries, schools, width, height, zoom, topLeft, tileMinX, tileMaxX, tileMinY, tileMaxY, latLngToPoint } = model;
   if (!validEntries.length) return '';
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -4716,6 +4742,23 @@ async function renderOverviewSnapshotDataUrl(entries) {
   const placedLabels = [];
   ctx.font = labelFont;
   ctx.textBaseline = 'middle';
+  const plottedSchools = schools.map(school => {
+    const point = latLngToPoint(school.lat, school.lng, zoom);
+    return {
+      school,
+      markerX: point.x - topLeft.x,
+      markerY: point.y - topLeft.y,
+    };
+  });
+  plottedSchools.forEach(item => {
+    const name = trimCanvasText(ctx, item.school.name, maxLabelWidth - 20);
+    const labelWidth = Math.min(maxLabelWidth, Math.ceil(ctx.measureText(name).width + 20));
+    const box = chooseSnapshotLabelBox(item.markerX, item.markerY, labelWidth, labelHeight, placedLabels, width, height);
+    placedLabels.push(box);
+    item.name = name;
+    item.box = box;
+  });
+
   const plottedEntries = validEntries.slice(0, 18).map((entry, index) => {
     const point = latLngToPoint(entry.dev.lat, entry.dev.lng, zoom);
     return {
@@ -4733,6 +4776,47 @@ async function renderOverviewSnapshotDataUrl(entries) {
     placedLabels.push(box);
     item.name = name;
     item.box = box;
+  });
+
+  plottedSchools.forEach(({ markerX, markerY, name, box, school }) => {
+    const boxCenterX = box.x + box.w / 2;
+    const boxCenterY = box.y + box.h / 2;
+    const distance = Math.hypot(boxCenterX - markerX, boxCenterY - markerY);
+    if (distance > 34) {
+      ctx.beginPath();
+      ctx.moveTo(markerX, markerY);
+      ctx.lineTo(boxCenterX, boxCenterY);
+      ctx.strokeStyle = 'rgba(26, 43, 74, 0.34)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = 'rgba(255,255,255,0.94)';
+    drawRoundedRect(ctx, box.x, box.y, box.w, box.h, 6);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.72)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = '#1A2B4A';
+    ctx.font = labelFont;
+    ctx.textAlign = 'left';
+    ctx.fillText(name, box.x + 10, box.y + box.h / 2);
+
+    ctx.beginPath();
+    ctx.arc(markerX, markerY, 18, 0, Math.PI * 2);
+    ctx.fillStyle = school.color || '#1A2B4A';
+    ctx.fill();
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#C9A84C';
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 13px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('UNI', markerX, markerY + 1);
+    ctx.textAlign = 'left';
   });
 
   plottedEntries.forEach(({ markerX, markerY, name, box }) => {
